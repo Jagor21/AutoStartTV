@@ -1,0 +1,78 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id "com.google.protobuf" version "0.8.12"
+    id("dagger.hilt.android.plugin")
+    id("kotlin-kapt")
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId "com.vlifte.autostarttv"
+        minSdkVersion 23
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+
+    def datastore = "1.0.0-beta01"
+    def protobuf = "3.11.0"
+    def preference = "1.1.1"
+
+    def hilt = "2.38.1"
+    def hiltViewModel = "1.0.0-alpha03"
+
+    def activityKtx = "1.3.1"
+    def fragmentKtx = "1.3.6"
+    def lifecycle = "2.4.0-rc01"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.6.0'
+    implementation 'androidx.leanback:leanback:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'com.google.android.material:material:1.4.0'
+
+    implementation "com.google.dagger:hilt-android:$hilt"
+    kapt "com.google.dagger:hilt-android-compiler:$hilt"
+    implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltViewModel"
+    kapt "androidx.hilt:hilt-compiler:$hiltViewModel"
+
+    implementation "androidx.datastore:datastore:$datastore"
+    implementation "com.google.protobuf:protobuf-javalite:$protobuf"
+    implementation "androidx.preference:preference-ktx:$preference"
+
+
+    implementation "androidx.activity:activity-ktx:$activityKtx"
+    implementation "androidx.fragment:fragment-ktx:$fragmentKtx"
+//    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle"
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.11.0"
+    }
+
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java {
+                    option 'lite'
+                }
+            }
+        }
+    }
+}

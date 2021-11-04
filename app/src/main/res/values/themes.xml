@@ -1,0 +1,4 @@
+<resources>
+
+    <style name="Theme.AutoStartTv" parent="@style/Theme.Leanback" />
+</resources>
