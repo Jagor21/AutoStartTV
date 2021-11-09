@@ -5,4 +5,9 @@ option java_multiple_files = true;
 
 message ProtoSettings {
   string device_token = 1;
+  string ad_url = 2;
+  int32 sleep_hour = 3;
+  int32 sleep_minute = 4;
+  int32 wake_up_hour = 5;
+  int32 wake_up_minute = 6;
 }

@@ -23,13 +23,12 @@
         android:textAllCaps="false"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"/>
-
-    <TextView
-        android:id="@+id/tv_logs"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="true"
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_settings"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:textAllCaps="false"
+        android:background="@color/transparent"
         android:layout_alignParentBottom="true"
-        android:layout_below="@id/webView"/>
+        android:layout_alignParentEnd="true"/>
 </RelativeLayout>

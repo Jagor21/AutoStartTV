@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/light_gray"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+
+    <TextView
+        android:id="@+id/tv_settings_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Settings"
+        android:textColor="@color/black"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_close"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_close" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/set_url_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/et_round_bckg"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp"
+        app:layout_constraintEnd_toStartOf="@id/sleep_time_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_settings_title">
+
+        <TextView
+            android:id="@+id/tv_url_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Set URL"
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <HorizontalScrollView
+            android:id="@+id/urls_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_url_title">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_vlifte_url"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="vlifte"
+                    android:textAllCaps="false"
+                    android:textColor="@color/blue"
+                    android:textSize="18sp"
+                    app:backgroundTint="@color/light_gray"
+                    app:cornerRadius="10dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_google_url"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="8dp"
+                    android:text="google"
+                    android:textAllCaps="false"
+                    android:textColor="@color/blue"
+                    android:textSize="18sp"
+                    app:backgroundTint="@color/light_gray"
+                    app:cornerRadius="10dp"
+                    app:layout_constraintStart_toEndOf="@id/btn_vlifte_url"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </HorizontalScrollView>
+
+        <EditText
+            android:id="@+id/et_url"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/et_rounded_white_bckg"
+            android:ellipsize="end"
+            android:hint="URL"
+            android:lines="1"
+            android:maxLines="1"
+            android:padding="8dp"
+            android:singleLine="true"
+            android:textColor="@color/black"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/urls_container" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_set_url"
+            style="@style/Widget.MaterialComponents.Button.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:paddingVertical="8dp"
+            android:paddingStart="16dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="16dp"
+            android:text="Set URL"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            app:backgroundTint="@color/dark_green"
+            app:cornerRadius="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/et_url"
+            app:layout_constraintVertical_bias="0.0" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/sleep_time_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/et_round_bckg"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/set_url_container"
+        app:layout_constraintTop_toTopOf="@id/set_url_container">
+
+        <TextView
+            android:id="@+id/tv_sleep_time_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Set sleep time"
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <FrameLayout
+            android:id="@+id/spinner_sleep_hour_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/spinner_rounded_bckg"
+            app:layout_constraintEnd_toStartOf="@id/spinner_sleep_minute_container"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_sleep_time_title">
+
+            <Spinner
+                android:id="@+id/spinner_sleep_hour"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:spinnerMode="dialog" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/spinner_sleep_minute_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/spinner_rounded_bckg"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/spinner_sleep_hour_container"
+            app:layout_constraintTop_toBottomOf="@id/tv_sleep_time_title">
+
+            <Spinner
+                android:id="@+id/spinner_sleep_minute"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:spinnerMode="dialog" />
+        </FrameLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_set_sleep_time"
+            style="@style/Widget.MaterialComponents.Button.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
+            android:paddingVertical="8dp"
+            android:paddingStart="16dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="16dp"
+            android:text="Set sleep time"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            app:backgroundTint="@color/dark_green"
+            app:cornerRadius="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/spinner_sleep_minute_container" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_sleep_immediately"
+        style="@style/MaterialAlertDialog.MaterialComponents.Title.Icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:layout_marginTop="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:paddingBottom="8dp"
+        android:text="Sleep immediately"
+        android:textAllCaps="false"
+        android:layout_marginEnd="16dp"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:backgroundTint="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:icon="@drawable/ic_sleep"
+        app:iconTint="@color/yellow"
+        app:cornerRadius="10dp"
+        app:layout_constraintStart_toStartOf="@id/set_url_container"
+        app:layout_constraintTop_toBottomOf="@id/set_url_container" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_clear_token"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        android:text="Clear token"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:backgroundTint="@color/red"
+        app:cornerRadius="10dp"
+        app:layout_constraintBottom_toBottomOf="@id/btn_sleep_immediately"
+        app:layout_constraintTop_toTopOf="@id/btn_sleep_immediately"
+        app:layout_constraintStart_toEndOf="@id/btn_sleep_immediately"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_clear_logs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        android:text="Clear logs"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:backgroundTint="@color/red"
+        app:cornerRadius="10dp"
+        app:layout_constraintBottom_toBottomOf="@id/btn_sleep_immediately"
+        app:layout_constraintStart_toEndOf="@id/btn_clear_token"
+        app:layout_constraintTop_toTopOf="@id/btn_sleep_immediately" />
+
+    <!--            <androidx.constraintlayout.widget.ConstraintLayout-->
+    <!--                android:id="@+id/wake_up_time_container"-->
+    <!--                android:layout_width="0dp"-->
+    <!--                android:layout_height="wrap_content"-->
+    <!--                android:layout_marginStart="8dp"-->
+    <!--                android:layout_marginTop="16dp"-->
+    <!--                android:background="@drawable/et_round_bckg"-->
+    <!--                android:paddingStart="16dp"-->
+    <!--                android:paddingEnd="16dp"-->
+    <!--                app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--                app:layout_constraintEnd_toEndOf="parent"-->
+    <!--                app:layout_constraintStart_toEndOf="@id/sleep_time_container"-->
+    <!--                app:layout_constraintTop_toTopOf="parent">-->
+
+    <!--                <TextView-->
+    <!--                    android:id="@+id/tv_save_wake_up_time"-->
+    <!--                    android:layout_width="wrap_content"-->
+    <!--                    android:layout_height="wrap_content"-->
+    <!--                    android:layout_marginTop="16dp"-->
+    <!--                    android:text="Save wake up time"-->
+    <!--                    android:textColor="@color/white"-->
+    <!--                    android:textSize="24sp"-->
+    <!--                    app:layout_constraintEnd_toEndOf="parent"-->
+    <!--                    app:layout_constraintStart_toStartOf="parent"-->
+    <!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+    <!--                <TextView-->
+    <!--                    android:id="@+id/tv_wake_up_time_message"-->
+    <!--                    android:layout_width="wrap_content"-->
+    <!--                    android:layout_height="wrap_content"-->
+    <!--                    android:layout_marginTop="8dp"-->
+    <!--                    android:text="• Current wake up time is 7 a.m.\n• To change wake up time go to Settings -> Timer\n• After setting wake up time in settings you need to save it here"-->
+    <!--                    app:layout_constraintEnd_toEndOf="parent"-->
+    <!--                    app:layout_constraintStart_toStartOf="parent"-->
+    <!--                    app:layout_constraintTop_toBottomOf="@id/tv_save_wake_up_time" />-->
+
+    <!--                <Spinner-->
+    <!--                    android:id="@+id/spinner_wake_up_hour"-->
+    <!--                    android:layout_width="0dp"-->
+    <!--                    android:layout_height="wrap_content"-->
+    <!--                    android:layout_marginTop="8dp"-->
+    <!--                    android:layout_marginEnd="8dp"-->
+    <!--                    android:backgroundTint="@color/black"-->
+    <!--                    android:padding="8dp"-->
+    <!--                    android:spinnerMode="dialog"-->
+    <!--                    app:layout_constraintEnd_toStartOf="@id/spinner_wake_up_minute"-->
+    <!--                    app:layout_constraintStart_toStartOf="parent"-->
+    <!--                    app:layout_constraintTop_toBottomOf="@id/tv_wake_up_time_message" />-->
+
+    <!--                <Spinner-->
+    <!--                    android:id="@+id/spinner_wake_up_minute"-->
+    <!--                    android:layout_width="0dp"-->
+    <!--                    android:layout_height="wrap_content"-->
+    <!--                    android:layout_marginStart="8dp"-->
+    <!--                    android:layout_marginTop="8dp"-->
+    <!--                    android:padding="8dp"-->
+    <!--                    android:spinnerMode="dialog"-->
+    <!--                    app:layout_constraintEnd_toEndOf="parent"-->
+    <!--                    app:layout_constraintStart_toEndOf="@id/spinner_wake_up_hour"-->
+    <!--                    app:layout_constraintTop_toBottomOf="@id/tv_wake_up_time_message" />-->
+
+    <!--                <com.google.android.material.button.MaterialButton-->
+    <!--                    android:id="@+id/btn_save_wake_up_time"-->
+    <!--                    style="@style/Widget.MaterialComponents.Button.Icon"-->
+    <!--                    android:layout_width="wrap_content"-->
+    <!--                    android:layout_height="wrap_content"-->
+    <!--                    android:layout_marginTop="16dp"-->
+    <!--                    android:layout_marginBottom="24dp"-->
+    <!--                    android:paddingVertical="8dp"-->
+    <!--                    android:paddingStart="16dp"-->
+    <!--                    android:paddingTop="8dp"-->
+    <!--                    android:paddingEnd="16dp"-->
+    <!--                    android:text="Save wake up time"-->
+    <!--                    android:textAllCaps="false"-->
+    <!--                    android:textColor="@color/white"-->
+    <!--                    android:textSize="18sp"-->
+    <!--                    app:backgroundTint="@color/gray"-->
+    <!--                    app:cornerRadius="10dp"-->
+    <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--                    app:layout_constraintEnd_toEndOf="parent"-->
+    <!--                    app:layout_constraintStart_toStartOf="parent"-->
+    <!--                    app:layout_constraintTop_toBottomOf="@id/spinner_wake_up_minute" />-->
+    <!--            </androidx.constraintlayout.widget.ConstraintLayout>-->
+
+<!--    <com.google.android.material.button.MaterialButton-->
+<!--        android:id="@+id/btn_apply_settings"-->
+<!--        style="@style/Widget.MaterialComponents.Button.Icon"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:layout_marginBottom="24dp"-->
+<!--        android:paddingStart="16dp"-->
+<!--        android:paddingTop="8dp"-->
+<!--        android:paddingEnd="16dp"-->
+<!--        android:paddingBottom="8dp"-->
+<!--        android:text="Apply settings"-->
+<!--        android:textAllCaps="false"-->
+<!--        android:textColor="@color/green"-->
+<!--        android:textSize="18sp"-->
+<!--        app:backgroundTint="@color/gray"-->
+<!--        app:cornerRadius="10dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/set_url_container" />-->
+    <!--    <EditText-->
+    <!--        android:id="@+id/et_sleep_hour"-->
+    <!--        android:layout_width="0dp"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_marginTop="8dp"-->
+    <!--        android:layout_marginEnd="8dp"-->
+    <!--        android:background="@drawable/et_round_bckg"-->
+    <!--        android:hint="Hour"-->
+    <!--        android:padding="8dp"-->
+    <!--        android:textColor="@color/black"-->
+    <!--        app:layout_constraintEnd_toStartOf="@id/et_sleep_minute"-->
+    <!--        app:layout_constraintStart_toStartOf="parent"-->
+    <!--        app:layout_constraintTop_toBottomOf="@id/tv_sleep_time_title" />-->
+
+    <!--    <EditText-->
+    <!--        android:id="@+id/et_sleep_minute"-->
+    <!--        android:layout_width="0dp"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_marginStart="8dp"-->
+    <!--        android:layout_marginTop="8dp"-->
+    <!--        android:background="@drawable/et_round_bckg"-->
+    <!--        android:hint="Minute"-->
+    <!--        android:padding="8dp"-->
+    <!--        android:textColor="@color/black"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        app:layout_constraintStart_toEndOf="@id/et_sleep_hour"-->
+    <!--        app:layout_constraintTop_toBottomOf="@id/tv_sleep_time_title" />-->
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
