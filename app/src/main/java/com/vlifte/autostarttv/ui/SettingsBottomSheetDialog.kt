@@ -1,4 +1,4 @@
-package com.vlifte.autostarttv
+package com.vlifte.autostarttv.ui
 
 import android.content.Context
 import android.provider.Settings
@@ -8,43 +8,43 @@ import androidx.annotation.ArrayRes
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
+import com.vlifte.autostarttv.*
+import com.vlifte.autostarttv.utils.TimeUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
-import javax.inject.Inject
 
 private const val HOUR_MILLISECONDS = 3600000
 private const val MINUTES_MILLISECONDS = 60000
 
-private const val DEFAULT_SLEEP_HOUR = 23
-
 private const val CONNECT_MONITOR_URL = "https://vlifte.by/_tv"
 private const val VLIFTE = "vlifte"
 private const val VLIFTE_TV = "_tv"
+private const val GOOGLE_URL = "https://google.com"
+private const val HTTPS = "https"
 
-class SettingsBottomSheetDialog(
+class SettingsBottomSheetDialog (
     context: Context,
+    private var appSettings: AppSettings,
     private val scope: CoroutineScope
 ) : BottomSheetDialog(context) {
-
-    @Inject
-    lateinit var appSettings: AppSettings
-
-    private var sleepHour: Int = 0
-    private var sleepMinute: Int = 0
-    private var adUrl: String = ""
 
     private val _webViewUrl = MutableStateFlow(UrlData(false, ""))
     val webViewUrl: StateFlow<UrlData> = _webViewUrl.asStateFlow()
 
+    private var adUrl: String = ""
+
     private fun setWebViewUrl(data: UrlData) {
+        _webViewUrl.value = UrlData(false, "")
         _webViewUrl.value = data
     }
 
     init {
         setContentView(R.layout.settings_bottom_sheet)
+    }
 
+    fun open() {
         val etUrl: EditText? = findViewById(R.id.et_url)
 
         val spinnerSleepHour: Spinner? = findViewById(R.id.spinner_sleep_hour)
@@ -60,20 +60,21 @@ class SettingsBottomSheetDialog(
         val btnClearLogs: MaterialButton? = findViewById(R.id.btn_clear_logs)
         val btnSleepImmediately: MaterialButton? = findViewById(R.id.btn_sleep_immediately)
 
-        createSpinnerAdapter(spinnerSleepHour, R.array.sleep_hours, sleepHour)
-        createSpinnerAdapter(spinnerSleepMinute, R.array.sleep_minutes, sleepMinute)
+        createSpinnerAdapter(spinnerSleepHour, R.array.sleep_hours, TimeUtils.sleepHour)
+        createSpinnerAdapter(spinnerSleepMinute, R.array.sleep_minutes, TimeUtils.sleepMinute)
 
         etUrl?.setText(adUrl)
 
         btnVlifteUrl?.let { btn ->
             btn.setOnClickListener {
-                etUrl?.setText("https://vlifte.by/_tv/")
+                val url = "$CONNECT_MONITOR_URL}/"
+                etUrl?.setText(url)
             }
         }
 
         btnGoogleUrl?.let { btn ->
             btn.setOnClickListener {
-                etUrl?.setText("https://google.com")
+                etUrl?.setText(GOOGLE_URL)
             }
         }
 
@@ -81,7 +82,7 @@ class SettingsBottomSheetDialog(
             btn.setOnClickListener {
                 launch {
                     appSettings.setDeviceToken("")
-                    showToast("Token was cleared!")
+                    showToast(context.getString(R.string.token_cleared))
                 }
             }
         }
@@ -89,16 +90,13 @@ class SettingsBottomSheetDialog(
         btnClearLogs?.let { btn ->
             btn.setOnClickListener {
                 LogWriter.clearLog(context)
-                showToast("Log was cleared!")
+                showToast(context.getString(R.string.log_cleared))
             }
         }
 
         btnSleepImmediately?.let { btn ->
             btn.setOnClickListener {
-                val sHtmlTemplate =
-                    "<html><head></head><body><img style=\"width: 100%; height: auto\" src=\"file:///android_asset/white_noise_gif.gif\"></body></html>"
-                setWebViewUrl(UrlData(true, sHtmlTemplate))
-//                webView.loadDataWithBaseURL(null, sHtmlTemplate, "text/html", "utf-8", null)
+                setWebViewUrl(UrlData(true, TvWebViewClient.WHITE_NOISE_HTML))
                 getTimeFromAppSettings(true)
                 dismiss()
             }
@@ -110,8 +108,8 @@ class SettingsBottomSheetDialog(
                 if (newAdUrl.isNotEmpty()) {
                     etUrl.error = null
 
-                    if (!newAdUrl.contains("https")) {
-                        newAdUrl = "https://$newAdUrl"
+                    if (!newAdUrl.contains(HTTPS)) {
+                        newAdUrl = context.getString(R.string.https, newAdUrl)
                     }
                     launch {
 
@@ -128,10 +126,10 @@ class SettingsBottomSheetDialog(
                         appSettings.setAdUrl(newAdUrl)
                         setWebViewUrl(UrlData(false, newAdUrl))
                     }
-                    showToast("Url successfully changed!")
+                    showToast(context.getString(R.string.url_changed))
 
                 } else {
-                    etUrl.error = "Url should not be blank!"
+                    etUrl.error = context.getString(R.string.url_is_blank)
                 }
             }
         }
@@ -148,7 +146,7 @@ class SettingsBottomSheetDialog(
                         getTimeFromAppSettings()
                     }
                 }
-                showToast("Sleep time successfully changed!")
+                showToast(context.getString(R.string.sleep_time_set))
             }
         }
 
@@ -159,6 +157,41 @@ class SettingsBottomSheetDialog(
         }
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         show()
+    }
+
+    fun getTimeFromAppSettings(immediately: Boolean = false) {
+        launch {
+            appSettings.saved.collect { settings ->
+                TimeUtils.sleepHour = if (settings.sleepHour != 0) {
+                    settings.sleepHour
+                } else {
+                    appSettings.setSleepHour(TimeUtils.DEFAULT_SLEEP_HOUR)
+                    TimeUtils.DEFAULT_SLEEP_HOUR
+                }
+                TimeUtils.sleepMinute = settings.sleepMinute
+            }
+            if (immediately) {
+                setScreenTimeOut(5000)
+            } else {
+                setScreenTimeOut(TimeUtils.getCurrentTimeMillis())
+            }
+        }
+    }
+
+    fun getAdUrlFromAppSettings() {
+        launch {
+            appSettings.saved.collect { settings ->
+                adUrl = when {
+                    settings.adUrl.contains(VLIFTE) -> "$CONNECT_MONITOR_URL/${settings.deviceToken}"
+                    settings.adUrl.isEmpty() -> {
+                        appSettings.setAdUrl(CONNECT_MONITOR_URL)
+                        CONNECT_MONITOR_URL
+                    }
+                    else -> settings.adUrl
+                }
+                setWebViewUrl(UrlData(false, adUrl))
+            }
+        }
     }
 
     private fun createSpinnerAdapter(
@@ -190,25 +223,6 @@ class SettingsBottomSheetDialog(
         }
     }
 
-    private fun getTimeFromAppSettings(immediately: Boolean = false) {
-        launch {
-            appSettings.saved.collect { settings ->
-                sleepHour = if (settings.sleepHour != 0) {
-                    settings.sleepHour
-                } else {
-                    appSettings.setSleepHour(DEFAULT_SLEEP_HOUR)
-                    DEFAULT_SLEEP_HOUR
-                }
-                sleepMinute = settings.sleepMinute
-            }
-            if (immediately) {
-                setScreenTimeOut(5000)
-            } else {
-                setScreenTimeOut(getCurrentTimeMillis())
-            }
-        }
-    }
-
     private fun setScreenTimeOut(currentTimeMillis: Int) {
         val settingsCanWrite = Settings.System.canWrite(context)
         if (!settingsCanWrite) {
@@ -227,28 +241,12 @@ class SettingsBottomSheetDialog(
 
             LogWriter.log(
                 context,
-                "\nMainActivity: onResume() defaultScreenTimeOut = $defaultScreenTimeOut timeSetSuccessfully = $timeSetSuccessfully\nSystem will go sleep in ${currentTimeMillis / HOUR_MILLISECONDS} hours ${currentTimeMillis / MINUTES_MILLISECONDS} minutes\n"
+                "\nSettingsBottomSheetDialog: onResume() defaultScreenTimeOut = $defaultScreenTimeOut timeSetSuccessfully = $timeSetSuccessfully\nSystem will go sleep in ${currentTimeMillis / HOUR_MILLISECONDS} hours ${currentTimeMillis / MINUTES_MILLISECONDS} minutes\n"
             )
             Log.d(
-                "MY_TAG",
-                "\nMainActivity: onResume() defaultScreenTimeOut = $defaultScreenTimeOut timeSetSuccessfully = $timeSetSuccessfully\nSystem will go sleep in ${currentTimeMillis / HOUR_MILLISECONDS} hours ${(currentTimeMillis / MINUTES_MILLISECONDS) % 60} minutes\n"
+                "SettingsBottomSheet",
+                "\nSettingsBottomSheetDialog: setScreenTimeOut() defaultScreenTimeOut = $defaultScreenTimeOut timeSetSuccessfully = $timeSetSuccessfully\nSystem will go sleep in ${currentTimeMillis / HOUR_MILLISECONDS} hours ${(currentTimeMillis / MINUTES_MILLISECONDS) % 60} minutes\n"
             )
         }
     }
-
-    private fun getCurrentTimeMillis(): Int {
-        val calendar = Calendar.getInstance()
-        val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
-        val hour = if (hourOfDay == 0) 24 else hourOfDay
-        val minute = calendar.get(Calendar.MINUTE)
-
-        val currentTimeMillis = (hour * HOUR_MILLISECONDS) + (minute * MINUTES_MILLISECONDS)
-        val sleepTimeMillis = (sleepHour * HOUR_MILLISECONDS) + (sleepMinute * MINUTES_MILLISECONDS)
-        return if (sleepTimeMillis - currentTimeMillis <= 0) 60000 else sleepTimeMillis - currentTimeMillis
-    }
 }
-
-data class UrlData(
-    val isBaseUrl: Boolean,
-    val url: String
-)

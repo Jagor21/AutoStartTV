@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.datastore.core.Serializer
 import com.google.protobuf.InvalidProtocolBufferException
+import com.vlifte.autostarttv.LogWriter
 import com.vlifte.autostarttv.ProtoSettings
 import java.io.InputStream
 import java.io.OutputStream

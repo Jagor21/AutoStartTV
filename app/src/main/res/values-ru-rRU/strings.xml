@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">АвтоЗапускТВ</string>
+    <string name="token_cleared">Токен удалён!</string>
+    <string name="log_cleared">Журнал удалён!</string>
+    <string name="url_changed">Ссылка изменена!</string>
+    <string name="url_is_blank">Ссылка не должна быть пустой!</string>
+    <string name="sleep_time_set">Время сна задано!</string>
+    <string name="settings">Настройки</string>
+    <string name="set_url">Задать ссылку</string>
+    <string name="url">Ссылка</string>
+    <string name="set_sleep_time">Задать время сна</string>
+    <string name="sleep_immediately">Уйти в сон</string>
+    <string name="clear_token">Очистить токен</string>
+    <string name="clear_logs">Очистить журнал</string>
+    <string name="sleep_time">Время сна</string>
+</resources>

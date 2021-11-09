@@ -1,4 +1,4 @@
-package com.vlifte.autostarttv
+package com.vlifte.autostarttv.service
 
 import android.app.*
 import android.content.Context
@@ -9,6 +9,8 @@ import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import com.vlifte.autostarttv.*
+import com.vlifte.autostarttv.ui.TvActivity
 
 class BootUpService : Service() {
 
