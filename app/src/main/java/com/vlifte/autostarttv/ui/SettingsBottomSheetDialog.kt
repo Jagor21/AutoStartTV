@@ -1,14 +1,19 @@
 package com.vlifte.autostarttv.ui
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.provider.Settings
 import android.util.Log
 import android.widget.*
 import androidx.annotation.ArrayRes
+import androidx.core.content.ContextCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.vlifte.autostarttv.*
+import com.vlifte.autostarttv.receiver.LockTvReceiver
 import com.vlifte.autostarttv.utils.TimeUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
@@ -24,7 +29,7 @@ private const val VLIFTE_TV = "_tv"
 private const val GOOGLE_URL = "https://google.com"
 private const val HTTPS = "https"
 
-class SettingsBottomSheetDialog (
+class SettingsBottomSheetDialog(
     context: Context,
     private var appSettings: AppSettings,
     private val scope: CoroutineScope
@@ -45,6 +50,9 @@ class SettingsBottomSheetDialog (
     }
 
     fun open() {
+
+        getTimeFromAppSettings()
+
         val etUrl: EditText? = findViewById(R.id.et_url)
 
         val spinnerSleepHour: Spinner? = findViewById(R.id.spinner_sleep_hour)
@@ -96,7 +104,7 @@ class SettingsBottomSheetDialog (
 
         btnSleepImmediately?.let { btn ->
             btn.setOnClickListener {
-                setWebViewUrl(UrlData(true, TvWebViewClient.WHITE_NOISE_HTML))
+                setWebViewUrl(UrlData(true, TvWebViewClient.BLR_LOGO_HTML))
                 getTimeFromAppSettings(true)
                 dismiss()
             }
@@ -143,7 +151,8 @@ class SettingsBottomSheetDialog (
                     appSettings.apply {
                         setSleepHour(sleepHour)
                         setSleepMinute(sleepMinute)
-                        getTimeFromAppSettings()
+                        setAlarm(sleepHour, sleepMinute)
+//                        getTimeFromAppSettings()
                     }
                 }
                 showToast(context.getString(R.string.sleep_time_set))
@@ -159,6 +168,48 @@ class SettingsBottomSheetDialog (
         show()
     }
 
+    private fun setAlarm(sleepHour: Int, sleepMinute: Int) {
+        val intent = Intent(context, LockTvReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context.applicationContext,
+            LockTvReceiver.REQUEST_LOCK_CODE,
+            intent.putExtra("SLEEP_REQUEST_CODE", LockTvReceiver.REQUEST_LOCK_CODE),
+            0
+        )
+        var alarmManager: AlarmManager =
+            ContextCompat.getSystemService(context, AlarmManager::class.java) as AlarmManager
+        alarmManager.cancel(pendingIntent)
+        LogWriter.log(
+            context,
+            "SettingsBottomSheetDialog: setting lock alarm for $sleepHour:$sleepMinute"
+        )
+        Log.d(
+            "SettingsBottomDialog",
+            "SettingsBottomSheetDialog: setting lock alarm for $sleepHour:$sleepMinute"
+        )
+
+        val calendar: Calendar = Calendar.getInstance().apply {
+            timeInMillis = System.currentTimeMillis()
+            set(Calendar.HOUR_OF_DAY, sleepHour)
+            set(Calendar.MINUTE, sleepMinute)
+        }
+
+        if (calendar.before(Calendar.getInstance())) {
+            calendar.add(Calendar.DATE, 1)
+        }
+
+        alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            AlarmManager.INTERVAL_DAY,
+            pendingIntent
+        )
+        Settings.System.putInt(
+            context.contentResolver,
+            Settings.System.SCREEN_OFF_TIMEOUT, (24 * 3600000)
+        )
+    }
+
     fun getTimeFromAppSettings(immediately: Boolean = false) {
         launch {
             appSettings.saved.collect { settings ->
@@ -171,9 +222,10 @@ class SettingsBottomSheetDialog (
                 TimeUtils.sleepMinute = settings.sleepMinute
             }
             if (immediately) {
-                setScreenTimeOut(5000)
+//                setScreenTimeOut(5000)
             } else {
-                setScreenTimeOut(TimeUtils.getCurrentTimeMillis())
+                setAlarm(TimeUtils.sleepHour, TimeUtils.sleepMinute)
+//                setScreenTimeOut(TimeUtils.getCurrentTimeMillis())
             }
         }
     }
@@ -241,7 +293,7 @@ class SettingsBottomSheetDialog (
 
             LogWriter.log(
                 context,
-                "\nSettingsBottomSheetDialog: onResume() defaultScreenTimeOut = $defaultScreenTimeOut timeSetSuccessfully = $timeSetSuccessfully\nSystem will go sleep in ${currentTimeMillis / HOUR_MILLISECONDS} hours ${currentTimeMillis / MINUTES_MILLISECONDS} minutes\n"
+                "\nSettingsBottomSheetDialog: onResume() defaultScreenTimeOut = $defaultScreenTimeOut timeSetSuccessfully = $timeSetSuccessfully\nSystem will go sleep in ${currentTimeMillis / HOUR_MILLISECONDS} hours ${currentTimeMillis / MINUTES_MILLISECONDS % 60} minutes\n"
             )
             Log.d(
                 "SettingsBottomSheet",

@@ -20,8 +20,8 @@ class TvWebViewClient(private val context: Context) : WebViewClient() {
     val urlData: StateFlow<UrlData> = _urlData.asStateFlow()
 
     companion object {
-        const val WHITE_NOISE_HTML =
-            "<html><head></head><body><img style=\"width: 100%; height: auto\" src=\"file:///android_asset/white_noise_gif.gif\"></body></html>"
+        const val BLR_LOGO_HTML =
+            "<html><head></head><body><img style=\"width: 100%; height: auto\" src=\"file:///android_asset/logo_blr.webp\"></body></html>"
     }
 
     override fun onPageFinished(view: WebView?, url: String) {
@@ -40,13 +40,13 @@ class TvWebViewClient(private val context: Context) : WebViewClient() {
     }
 
     override fun onLoadResource(view: WebView?, url: String?) {
-        val currentTime = TimeUtils.getCurrentTimeMillis()
-        if (currentTime == 60000 && !isSleepLoadFinished) {
-            setUrlData(UrlData(true, WHITE_NOISE_HTML))
-            Log.d("WebView", "onPageFinished: stop")
-            LogWriter.log(context, sBody = "TvActivity: webView onLoading stop")
-            isSleepLoadFinished = true
-        }
+//        val currentTime = TimeUtils.getCurrentTimeMillis()
+//        if (currentTime == 60000 && !isSleepLoadFinished) {
+//            setUrlData(UrlData(true, BLR_LOGO_HTML))
+//            Log.d("WebView", "onLoadResource: stop")
+//            LogWriter.log(context, sBody = "TvActivity: webView onLoadResource stop")
+//            isSleepLoadFinished = true
+//        }
         Log.d(
             "WebView",
             "onLoadResource: your current url when webpage loading.. $url"

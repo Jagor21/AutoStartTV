@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -90,6 +91,10 @@ class TvActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        Settings.System.putInt(
+            this.contentResolver,
+            Settings.System.SCREEN_OFF_TIMEOUT, (24 * 3600000)
+        )
         observeTvWebViewClient()
         observeSettingsDialog()
         settingsDialog.getTimeFromAppSettings()
