@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import android.widget.*
@@ -13,11 +14,14 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.vlifte.autostarttv.*
+import com.vlifte.autostarttv.TvWebViewClient.Companion.BLR_LOGO_HTML
 import com.vlifte.autostarttv.receiver.LockTvReceiver
+import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.ACTION_CLOSE
 import com.vlifte.autostarttv.utils.TimeUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.*
 
 private const val HOUR_MILLISECONDS = 3600000
@@ -51,7 +55,7 @@ class SettingsBottomSheetDialog(
 
     fun open() {
 
-        getTimeFromAppSettings()
+//        getTimeFromAppSettings()
 
         val etUrl: EditText? = findViewById(R.id.et_url)
 
@@ -152,6 +156,8 @@ class SettingsBottomSheetDialog(
                         setSleepHour(sleepHour)
                         setSleepMinute(sleepMinute)
                         setAlarm(sleepHour, sleepMinute)
+                        TimeUtils.sleepHour = sleepHour
+                        TimeUtils.sleepMinute = sleepMinute
 //                        getTimeFromAppSettings()
                     }
                 }
@@ -168,8 +174,9 @@ class SettingsBottomSheetDialog(
         show()
     }
 
-    private fun setAlarm(sleepHour: Int, sleepMinute: Int) {
+    private fun setAlarm(sleepHour: Int = TimeUtils.sleepHour, sleepMinute: Int = TimeUtils.sleepMinute) {
         val intent = Intent(context, LockTvReceiver::class.java)
+        intent.action = ACTION_CLOSE
         val pendingIntent = PendingIntent.getBroadcast(
             context.applicationContext,
             LockTvReceiver.REQUEST_LOCK_CODE,
@@ -179,35 +186,59 @@ class SettingsBottomSheetDialog(
         var alarmManager: AlarmManager =
             ContextCompat.getSystemService(context, AlarmManager::class.java) as AlarmManager
         alarmManager.cancel(pendingIntent)
-        LogWriter.log(
-            context,
-            "SettingsBottomSheetDialog: setting lock alarm for $sleepHour:$sleepMinute"
-        )
-        Log.d(
-            "SettingsBottomDialog",
-            "SettingsBottomSheetDialog: setting lock alarm for $sleepHour:$sleepMinute"
-        )
-
         val calendar: Calendar = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
             set(Calendar.HOUR_OF_DAY, sleepHour)
             set(Calendar.MINUTE, sleepMinute)
+            set(Calendar.SECOND, 0)
         }
 
         if (calendar.before(Calendar.getInstance())) {
             calendar.add(Calendar.DATE, 1)
         }
 
-        alarmManager.setRepeating(
+        val dateFormat = SimpleDateFormat("dd MM yyyy hh:mm:ss")
+
+        LogWriter.log(
+            context,
+            "SettingsBottomSheetDialog: setting lock alarm for $sleepHour:$sleepMinute ${
+                dateFormat.format(calendar.time)
+            }"
+        )
+        Log.d(
+            "SettingsBottomDialog",
+            "SettingsBottomSheetDialog: setting lock alarm for $sleepHour:$sleepMinute ${
+                dateFormat.format(
+                    calendar.time
+                )
+            }"
+        )
+
+        alarmManager.set(
             AlarmManager.RTC_WAKEUP,
             calendar.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
             pendingIntent
+        )
+//        if (Settings.System.canWrite(context)){
+
+        LogWriter.log(
+            context,
+            "TvActivity: SCREEN_OFF_TIMEOUT set to ${
+                Settings.System.getInt(
+                    context.contentResolver,
+                    Settings.System.SCREEN_OFF_TIMEOUT
+                )
+            }"
         )
         Settings.System.putInt(
             context.contentResolver,
             Settings.System.SCREEN_OFF_TIMEOUT, (24 * 3600000)
         )
+//        } else {
+//            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
+//            intent.data = Uri.parse("package:" + context.packageName)
+//            context.startActivity(intent)
+//        }
     }
 
     fun getTimeFromAppSettings(immediately: Boolean = false) {
@@ -224,13 +255,13 @@ class SettingsBottomSheetDialog(
             if (immediately) {
 //                setScreenTimeOut(5000)
             } else {
-                setAlarm(TimeUtils.sleepHour, TimeUtils.sleepMinute)
+                setAlarm()
 //                setScreenTimeOut(TimeUtils.getCurrentTimeMillis())
             }
         }
     }
 
-    fun getAdUrlFromAppSettings() {
+    fun getAdUrlFromAppSettings(isBase: Boolean = false) {
         launch {
             appSettings.saved.collect { settings ->
                 adUrl = when {
@@ -241,7 +272,15 @@ class SettingsBottomSheetDialog(
                     }
                     else -> settings.adUrl
                 }
-                setWebViewUrl(UrlData(false, adUrl))
+                if(isBase) {
+                    setWebViewUrl(UrlData(true, BLR_LOGO_HTML))
+//                    Settings.System.putInt(
+//                        context.contentResolver,
+//                        Settings.System.SCREEN_OFF_TIMEOUT, (5000)
+//                    )
+                } else {
+                    setWebViewUrl(UrlData(false, adUrl))
+                }
             }
         }
     }

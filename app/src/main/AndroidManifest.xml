@@ -2,36 +2,44 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.vlifte.autostarttv">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-    <uses-permission android:name="com.android.internal.intent.action.REQUEST_SHUTDOWN"/>
-    <uses-permission android:name="android.permission.SHUTDOWN"/>
-
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />
-    <uses-feature
-        android:name="android.hardware.touchscreen"
-        android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="com.android.internal.intent.action.REQUEST_SHUTDOWN" />
+    <uses-permission android:name="android.permission.SHUTDOWN" />
+
+<!--    <uses-feature-->
+<!--        android:name="android.software.leanback"-->
+<!--        android:required="false" />-->
+<!--    <uses-feature-->
+<!--        android:name="android.hardware.touchscreen"-->
+<!--        android:required="false" />-->
 
     <application
-        android:allowBackup="true"
         android:name=".AutostartTvApp"
+        android:allowBackup="true"
         android:banner="@drawable/ic_banner_foreground"
+        android:exported="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AutoStartTv">
+        android:theme="@style/Theme.AutoStartTv"
+        android:usesCleartextTraffic="true">
 
         <activity
-            android:name="com.vlifte.autostarttv.ui.TvActivity"
+            android:name=".ui.TvActivity"
             android:label="@string/app_name"
-            android:theme="@style/Theme.AutoStartTv">
+            android:theme="@style/Theme.AutoStartTv"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <!--                <category android:name="android.intent.category.DEFAULT" />-->
             </intent-filter>
         </activity>
 
@@ -39,8 +47,7 @@
             android:name="com.vlifte.autostarttv.receiver.BootUpReceiver"
             android:enabled="true"
             android:exported="true"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
-            >
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
@@ -53,16 +60,17 @@
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.USER_PRESENT" />-->
-<!--            </intent-filter>-->
+            <!--            <intent-filter>-->
+            <!--                <action android:name="android.intent.action.USER_PRESENT" />-->
+            <!--            </intent-filter>-->
         </receiver>
-        <service android:name="com.vlifte.autostarttv.service.BootUpService"
+        <service
+            android:name="com.vlifte.autostarttv.service.BootUpService"
             android:enabled="true"
             android:exported="true" />
-<!--        <service android:name="com.vlifte.autostarttv.ScreenStateService"-->
-<!--            android:enabled="true"-->
-<!--            android:exported="true" />-->
+        <!--        <service android:name="com.vlifte.autostarttv.ScreenStateService"-->
+        <!--            android:enabled="true"-->
+        <!--            android:exported="true" />-->
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -74,9 +82,10 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <receiver android:name="com.vlifte.autostarttv.receiver.LockTvReceiver"
+        <receiver
+            android:name="com.vlifte.autostarttv.receiver.LockTvReceiver"
             android:enabled="true"
-            android:exported="false"/>
+            android:exported="false" />
     </application>
 
 </manifest>

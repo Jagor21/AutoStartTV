@@ -30,4 +30,13 @@
         android:layout_alignParentBottom="true"
         android:background="@color/transparent"
         android:textAllCaps="false" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_test"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:background="@color/transparent"
+        android:textAllCaps="false" />
 </RelativeLayout>

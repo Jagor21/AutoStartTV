@@ -19,6 +19,7 @@ class BootUpService : Service() {
         LogWriter.log(this@BootUpService, sBody = "BootUpService: service started")
         startForeground()
     }
+
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
@@ -42,7 +43,7 @@ class BootUpService : Service() {
                 ""
             }
 
-        val notificationBuilder = NotificationCompat.Builder(this, channelId )
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
         val notification = notificationBuilder.setOngoing(true)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setPriority(NotificationCompat.PRIORITY_MIN)
@@ -52,9 +53,11 @@ class BootUpService : Service() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNotificationChannel(channelId: String, channelName: String): String{
-        val chan = NotificationChannel(channelId,
-            channelName, NotificationManager.IMPORTANCE_NONE)
+    private fun createNotificationChannel(channelId: String, channelName: String): String {
+        val chan = NotificationChannel(
+            channelId,
+            channelName, NotificationManager.IMPORTANCE_NONE
+        )
         chan.lightColor = Color.BLUE
         chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
         val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

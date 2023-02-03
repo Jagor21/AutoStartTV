@@ -1,6 +1,7 @@
 package com.vlifte.autostarttv
 
 import android.content.Context
+import android.provider.Settings
 import android.util.Log
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -36,26 +37,40 @@ class TvWebViewClient(private val context: Context) : WebViewClient() {
                 _token.value = token
             }
         }
+
+        if (url == "about:blank") {
+            Settings.System.putInt(
+                context.contentResolver,
+                Settings.System.SCREEN_OFF_TIMEOUT, (10000)
+            )
+        }
         super.onPageFinished(view, url)
     }
 
     override fun onLoadResource(view: WebView?, url: String?) {
-//        val currentTime = TimeUtils.getCurrentTimeMillis()
-//        if (currentTime == 60000 && !isSleepLoadFinished) {
-//            setUrlData(UrlData(true, BLR_LOGO_HTML))
-//            Log.d("WebView", "onLoadResource: stop")
-//            LogWriter.log(context, sBody = "TvActivity: webView onLoadResource stop")
-//            isSleepLoadFinished = true
-//        }
         Log.d(
             "WebView",
             "onLoadResource: your current url when webpage loading.. $url"
         )
+
+        if(isSleepLoadFinished) {
+            Log.d(
+                "WebView",
+                "onLoadResource: Stop: Loading placeholder"
+            )
+
+//            setUrlData(UrlData(true, BLR_LOGO_HTML))
+            Settings.System.putInt(
+                context.contentResolver,
+                Settings.System.SCREEN_OFF_TIMEOUT, (10000)
+            )
+        }
+
         super.onLoadResource(view, url)
     }
 
     private fun setUrlData(urlData: UrlData) {
-        _urlData.value = UrlData(false, "")
         _urlData.value = urlData
+//        _urlData.value = urlData
     }
 }

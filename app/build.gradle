@@ -4,9 +4,14 @@ plugins {
     id "com.google.protobuf" version "0.8.12"
     id("dagger.hilt.android.plugin")
     id("kotlin-kapt")
+    id 'com.google.firebase.crashlytics'
 }
 
 android {
+    signingConfigs {
+        release {
+        }
+    }
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
 
@@ -18,11 +23,25 @@ android {
         versionName "1.0"
 
     }
+    signingConfigs {
+        release {
+        storeFile file('/Users/jagorkushnir/StudioProjects/AutoStartTV/keystore')
+            storePassword '123456'
+            keyPassword '123456'
+            keyAlias 'key0'
+        }
+    }
 
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable true
         }
     }
 }
@@ -59,6 +78,12 @@ dependencies {
     implementation "androidx.activity:activity-ktx:$activityKtx"
     implementation "androidx.fragment:fragment-ktx:$fragmentKtx"
 //    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle"
+
+    implementation platform('com.google.firebase:firebase-bom:29.3.1')
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
+    implementation 'com.jakewharton:process-phoenix:2.1.2'
 }
 
 protobuf {
