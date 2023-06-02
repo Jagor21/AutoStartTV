@@ -10,6 +10,8 @@ object TimeUtils {
 
     var sleepHour: Int = 0
     var sleepMinute: Int = 0
+    var wakeHour: Int = 0
+    var wakeMinute: Int = 0
     var sleepAmPm = -1
 
     const val DEFAULT_SLEEP_HOUR = 23

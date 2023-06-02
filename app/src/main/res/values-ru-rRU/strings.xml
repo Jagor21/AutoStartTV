@@ -6,6 +6,7 @@
     <string name="url_changed">Ссылка изменена!</string>
     <string name="url_is_blank">Ссылка не должна быть пустой!</string>
     <string name="sleep_time_set">Время сна задано!</string>
+    <string name="wake_time_set">Время пробуждения задано!</string>
     <string name="settings">Настройки</string>
     <string name="set_url">Задать ссылку</string>
     <string name="url">Ссылка</string>
@@ -14,4 +15,5 @@
     <string name="clear_token">Очистить токен</string>
     <string name="clear_logs">Очистить журнал</string>
     <string name="sleep_time">Время сна</string>
+    <string name="wake_time">Задать время пробуждения</string>
 </resources>

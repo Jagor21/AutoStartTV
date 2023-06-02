@@ -4,12 +4,14 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.widget.*
 import androidx.annotation.ArrayRes
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.view.isGone
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
@@ -17,6 +19,10 @@ import com.vlifte.autostarttv.*
 import com.vlifte.autostarttv.TvWebViewClient.Companion.BLR_LOGO_HTML
 import com.vlifte.autostarttv.receiver.LockTvReceiver
 import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.ACTION_CLOSE
+import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.REQUEST_SLEEP_CODE
+import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.REQUEST_WAKE_CODE
+import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.SLEEP_REQUEST_CODE
+//import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.WAKE_REQUEST_CODE
 import com.vlifte.autostarttv.utils.TimeUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
@@ -56,14 +62,24 @@ class SettingsBottomSheetDialog(
     fun open() {
 
 //        getTimeFromAppSettings()
+        val wakeContainer = findViewById<ConstraintLayout>(R.id.wake_time_container)
+
+        val androidVersion = Build.VERSION.SDK_INT
+        if (androidVersion < Build.VERSION_CODES.R) {
+            wakeContainer?.isGone = true
+        }
 
         val etUrl: EditText? = findViewById(R.id.et_url)
 
         val spinnerSleepHour: Spinner? = findViewById(R.id.spinner_sleep_hour)
         val spinnerSleepMinute: Spinner? = findViewById(R.id.spinner_sleep_minute)
 
+        val spinnerWakeHour: Spinner? = findViewById(R.id.spinner_wake_hour)
+        val spinnerWakeMinute: Spinner? = findViewById(R.id.spinner_wake_minute)
+
         val btnSetUrl: MaterialButton? = findViewById(R.id.btn_set_url)
         val btnSetSleepTime: MaterialButton? = findViewById(R.id.btn_set_sleep_time)
+        val btnSetWakeTime: MaterialButton? = findViewById(R.id.btn_set_wake_time)
         val btnClose: ImageView? = findViewById(R.id.iv_close)
 
         val btnVlifteUrl: MaterialButton? = findViewById(R.id.btn_vlifte_url)
@@ -75,11 +91,14 @@ class SettingsBottomSheetDialog(
         createSpinnerAdapter(spinnerSleepHour, R.array.sleep_hours, TimeUtils.sleepHour)
         createSpinnerAdapter(spinnerSleepMinute, R.array.sleep_minutes, TimeUtils.sleepMinute)
 
+        createSpinnerAdapter(spinnerWakeHour, R.array.sleep_hours, TimeUtils.wakeHour)
+        createSpinnerAdapter(spinnerWakeMinute, R.array.sleep_minutes, TimeUtils.wakeMinute)
+
         etUrl?.setText(adUrl)
 
         btnVlifteUrl?.let { btn ->
             btn.setOnClickListener {
-                val url = "$CONNECT_MONITOR_URL}/"
+                val url = "$CONNECT_MONITOR_URL/"
                 etUrl?.setText(url)
             }
         }
@@ -155,13 +174,30 @@ class SettingsBottomSheetDialog(
                     appSettings.apply {
                         setSleepHour(sleepHour)
                         setSleepMinute(sleepMinute)
-                        setAlarm(sleepHour, sleepMinute)
+                        setAlarm(sleepHour, sleepMinute, SLEEP_REQUEST_CODE, REQUEST_SLEEP_CODE)
                         TimeUtils.sleepHour = sleepHour
                         TimeUtils.sleepMinute = sleepMinute
 //                        getTimeFromAppSettings()
                     }
                 }
                 showToast(context.getString(R.string.sleep_time_set))
+            }
+        }
+        btnSetWakeTime?.let {
+            it.setOnClickListener {
+                val wakeHour = spinnerWakeHour!!.selectedItem.toString().toInt()
+                val wakeMinute = spinnerWakeMinute!!.selectedItem.toString().toInt()
+
+                launch {
+                    appSettings.apply {
+                        setWakeUpHour(wakeHour)
+                        setWakeUpMinute(wakeMinute)
+                        setAlarm(wakeHour, wakeMinute, SLEEP_REQUEST_CODE, REQUEST_WAKE_CODE)
+                        TimeUtils.wakeHour = wakeHour
+                        TimeUtils.wakeMinute = wakeMinute
+                    }
+                }
+                showToast(context.getString(R.string.wake_time_set))
             }
         }
 
@@ -174,15 +210,25 @@ class SettingsBottomSheetDialog(
         show()
     }
 
-    private fun setAlarm(sleepHour: Int = TimeUtils.sleepHour, sleepMinute: Int = TimeUtils.sleepMinute) {
+    private fun setAlarm(
+        sleepHour: Int = TimeUtils.sleepHour,
+        sleepMinute: Int = TimeUtils.sleepMinute,
+        requestCodeName: String,
+        requestCode: Int
+    ) {
         val intent = Intent(context, LockTvReceiver::class.java)
         intent.action = ACTION_CLOSE
         val pendingIntent = PendingIntent.getBroadcast(
             context.applicationContext,
-            LockTvReceiver.REQUEST_LOCK_CODE,
-            intent.putExtra("SLEEP_REQUEST_CODE", LockTvReceiver.REQUEST_LOCK_CODE),
-            0
+            requestCode,
+            intent.putExtra(requestCodeName, requestCode),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
         )
+
         var alarmManager: AlarmManager =
             ContextCompat.getSystemService(context, AlarmManager::class.java) as AlarmManager
         alarmManager.cancel(pendingIntent)
@@ -255,7 +301,7 @@ class SettingsBottomSheetDialog(
             if (immediately) {
 //                setScreenTimeOut(5000)
             } else {
-                setAlarm()
+                setAlarm(requestCodeName = SLEEP_REQUEST_CODE, requestCode = REQUEST_SLEEP_CODE)
 //                setScreenTimeOut(TimeUtils.getCurrentTimeMillis())
             }
         }
@@ -272,12 +318,12 @@ class SettingsBottomSheetDialog(
                     }
                     else -> settings.adUrl
                 }
-                if(isBase) {
+                if (isBase) {
                     setWebViewUrl(UrlData(true, BLR_LOGO_HTML))
-//                    Settings.System.putInt(
-//                        context.contentResolver,
-//                        Settings.System.SCREEN_OFF_TIMEOUT, (5000)
-//                    )
+                    Settings.System.putInt(
+                        context.contentResolver,
+                        Settings.System.SCREEN_OFF_TIMEOUT, (5000)
+                    )
                 } else {
                     setWebViewUrl(UrlData(false, adUrl))
                 }

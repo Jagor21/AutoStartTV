@@ -33,6 +33,7 @@
 
         <activity
             android:name=".ui.TvActivity"
+            android:launchMode="singleTop"
             android:label="@string/app_name"
             android:theme="@style/Theme.AutoStartTv"
             android:exported="true">
@@ -85,7 +86,7 @@
         <receiver
             android:name="com.vlifte.autostarttv.receiver.LockTvReceiver"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="true" />
     </application>
 
 </manifest>

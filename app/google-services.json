@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "547935949087",
+    "project_id": "autostarttv-a3f90",
+    "storage_bucket": "autostarttv-a3f90.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:547935949087:android:33dba8e4b3911aa7b1602a",
+        "android_client_info": {
+          "package_name": "com.vlifte.autostarttv"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "547935949087-2fbt51hbd45ots46809vn6ld7q7rr56h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vlifte.autostarttv",
+            "certificate_hash": "e54cca80ccfa1febd0fbd0782865f3d0ba3050f3"
+          }
+        },
+        {
+          "client_id": "547935949087-dbe6rkcgcto47dhi2dkmfoggjjclekkg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vlifte.autostarttv",
+            "certificate_hash": "4d4b6ae8b2ffd10cd274d7c08988a18230737222"
+          }
+        },
+        {
+          "client_id": "547935949087-mmh1ur1knfl09mrb266cncutrjpsb2br.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaTlTA6s6oM9NWdHS1H-kB2UYe60IkRnQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "547935949087-mmh1ur1knfl09mrb266cncutrjpsb2br.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

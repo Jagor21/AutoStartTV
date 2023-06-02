@@ -6,6 +6,7 @@
     <string name="url_changed">Url successfully changed!</string>
     <string name="url_is_blank">Url should not be blank!</string>
     <string name="sleep_time_set">Sleep time set!</string>
+    <string name="wake_time_set">Wake time set!</string>
     <string name="settings">Settings</string>
     <string name="set_url">Set URL</string>
     <string name="vlifte" translatable="false">vlifte</string>
@@ -16,6 +17,7 @@
     <string name="clear_token">Clear token</string>
     <string name="clear_logs">Clear logs</string>
     <string name="sleep_time">Sleep time</string>
+    <string name="wake_time">Set wake time</string>
 
     <string-array name="sleep_hours">
         <item>01</item>
