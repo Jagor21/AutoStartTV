@@ -10,6 +10,7 @@ import android.util.Log
 import android.widget.*
 import androidx.annotation.ArrayRes
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.Group
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -87,6 +88,13 @@ class SettingsBottomSheetDialog(
         val btnClearToken: MaterialButton? = findViewById(R.id.btn_clear_token)
         val btnClearLogs: MaterialButton? = findViewById(R.id.btn_clear_logs)
         val btnSleepImmediately: MaterialButton? = findViewById(R.id.btn_sleep_immediately)
+
+        val gTimers = findViewById<Group>(R.id.g_timers)
+
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            gTimers?.isGone = true
+        }
+
 
         createSpinnerAdapter(spinnerSleepHour, R.array.sleep_hours, TimeUtils.sleepHour)
         createSpinnerAdapter(spinnerSleepMinute, R.array.sleep_minutes, TimeUtils.sleepMinute)
