@@ -152,7 +152,12 @@ class TvActivity : AppCompatActivity() {
                     delay(/*if (isCurrentAdVideo) exoPlayer.duration + 3000L else*/ contentX.duration.toInt() * 1000L)
 
                     exoPlayer.clearMediaItems()
-                    exoPlayer.release()
+
+                    try {
+                        exoPlayer.release()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
 //                currentAdList.forEach {
 //                    Log.d("PLAY_AD", it.file.url)
@@ -198,6 +203,7 @@ class TvActivity : AppCompatActivity() {
                 LockScreenCodeEvent.EVENT_BLACK_SCREEN_OFF -> {
                     LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
                     vBlackScreen.isGone = true
+                    exoPlayer.release()
                     recreate()
                 }
 
