@@ -163,8 +163,9 @@ class TvActivity : AppCompatActivity() {
             }
         }
     }
+
     private fun observeLockReceiver() {
-        LockTvReceiver.event.onEach {event ->
+        LockTvReceiver.event.onEach { event ->
             when (event) {
                 LockScreenCodeEvent.EVENT_CLOSE -> {
                     Log.d(
@@ -183,17 +184,23 @@ class TvActivity : AppCompatActivity() {
                     needLoadAd = false
                     tvWebViewClient.isSleepLoadFinished = true
                     Settings.System.putInt(
-                        this.contentResolver,
+                        this@TvActivity.contentResolver,
                         Settings.System.SCREEN_OFF_TIMEOUT, (5000)
                     )
                 }
+
                 LockScreenCodeEvent.EVENT_BLACK_SCREEN -> {
                     viewModel.needLoadAd = false
                     exoPlayer.stop()
                     vBlackScreen.isGone = false
                 }
-                LockScreenCodeEvent.EVENT_BLACK_SCREEN_OFF ->
+
+                LockScreenCodeEvent.EVENT_BLACK_SCREEN_OFF -> {
+                    LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
+                    vBlackScreen.isGone = true
                     recreate()
+                }
+
                 LockScreenCodeEvent.NONE -> {}
             }
         }.launchIn(lifecycleScope)

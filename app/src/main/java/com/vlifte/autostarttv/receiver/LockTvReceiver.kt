@@ -28,23 +28,25 @@ class LockTvReceiver : BroadcastReceiver() {
         const val ACTION_CLOSE = "close_action"
         const val ACTION_BLACK_SCREEN = "black_screen"
 
-        private val myEvent = MutableSharedFlow<LockScreenCodeEvent>(
-            replay = 1,
-            onBufferOverflow = BufferOverflow.DROP_LATEST
-        )
-        val event = myEvent.asSharedFlow()
+        private val myEvent = MutableStateFlow(LockScreenCodeEvent.NONE)
+        val event = myEvent.asStateFlow()
+
+        fun resetMyEvent(event: LockScreenCodeEvent) {
+            myEvent.update { event }
+        }
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
         val androidVersion = Build.VERSION.SDK_INT
-        intent?.let { i ->            val code = i.extras?.getInt(SLEEP_REQUEST_CODE)
-            myEvent.tryEmit(
+        intent?.let { i ->
+            val code = i.extras?.getInt(SLEEP_REQUEST_CODE)
+            myEvent.update {
                 if (androidVersion < Build.VERSION_CODES.R) {
                     LockScreenCodeEvent.EVENT_CLOSE
                 } else {
                     if (code == REQUEST_WAKE_CODE) LockScreenCodeEvent.EVENT_BLACK_SCREEN_OFF else LockScreenCodeEvent.EVENT_BLACK_SCREEN
                 }
-            )
+            }
 //            if (androidVersion < Build.VERSION_CODES.R) {
 //                if (code == REQUEST_SLEEP_CODE) {
 //                    EventBus.getDefault().post(LockScreenCodeEvent.EVENT_CLOSE)
