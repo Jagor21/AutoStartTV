@@ -27,6 +27,7 @@ import com.sgvdev.autostart.models.AdRequest
 import com.sgvdev.autostart.models.ContentX
 import com.vlifte.autostarttv.*
 import com.vlifte.autostarttv.TvWebViewClient.Companion.BLR_LOGO_HTML
+import com.vlifte.autostarttv.receiver.LockTvReceiver
 import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.ACTION_BLACK_SCREEN
 import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.ACTION_CLOSE
 import com.vlifte.autostarttv.ui.viewmodel.MainActivityViewModel
@@ -84,7 +85,7 @@ class TvActivity : AppCompatActivity() {
         Log.d("TvActivity", "TvActivity onCreate observeSettingsDialog")
 
         observeViewModel()
-
+        observeLockReceiver()
         //UNCOMMENT LATER
 
 
@@ -162,39 +163,41 @@ class TvActivity : AppCompatActivity() {
             }
         }
     }
+    private fun observeLockReceiver() {
+        LockTvReceiver.event.onEach {event ->
+            when (event) {
+                LockScreenCodeEvent.EVENT_CLOSE -> {
+                    Log.d(
+                        "TvActivity: onNewIntent",
+                        ""
+                    )
+                    webView?.loadDataWithBaseURL(
+                        "file:///android_asset/",
+                        BLR_LOGO_HTML,
+                        "text/html",
+                        "UTF-8",
+                        null
+                    )
+                    needLoadBaseUrl = true
+                    viewModel.needLoadAd = false
+                    needLoadAd = false
+                    tvWebViewClient.isSleepLoadFinished = true
+                    Settings.System.putInt(
+                        this.contentResolver,
+                        Settings.System.SCREEN_OFF_TIMEOUT, (5000)
+                    )
+                }
+                LockScreenCodeEvent.EVENT_BLACK_SCREEN -> {
+                    viewModel.needLoadAd = false
+                    exoPlayer.stop()
+                    vBlackScreen.isGone = false
+                }
+                LockScreenCodeEvent.EVENT_BLACK_SCREEN_OFF ->
+                    recreate()
+                LockScreenCodeEvent.NONE -> {}
+            }
+        }.launchIn(lifecycleScope)
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onMyEvent(event: LockScreenCodeEvent) {
-        when (event) {
-            LockScreenCodeEvent.EVENT_CLOSE -> {
-                Log.d(
-                    "TvActivity: onNewIntent",
-                    ""
-                )
-                webView?.loadDataWithBaseURL(
-                    "file:///android_asset/",
-                    BLR_LOGO_HTML,
-                    "text/html",
-                    "UTF-8",
-                    null
-                )
-                needLoadBaseUrl = true
-                viewModel.needLoadAd = false
-                needLoadAd = false
-                tvWebViewClient.isSleepLoadFinished = true
-                Settings.System.putInt(
-                    this.contentResolver,
-                    Settings.System.SCREEN_OFF_TIMEOUT, (5000)
-                )
-            }
-            LockScreenCodeEvent.EVENT_BLACK_SCREEN -> {
-                viewModel.needLoadAd = false
-                exoPlayer.stop()
-                vBlackScreen.isGone = false
-            }
-            LockScreenCodeEvent.EVENT_BLACK_SCREEN_OFF ->
-                recreate()
-        }
     }
 
 //    override fun onNewIntent(intent: Intent?) {
@@ -233,15 +236,6 @@ class TvActivity : AppCompatActivity() {
 //        }
 //    }
 
-    override fun onStart() {
-        super.onStart()
-        EventBus.getDefault().register(this)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        EventBus.getDefault().unregister(this)
-    }
 
     private fun observeTvWebViewClient() {
         tvWebViewClient.apply {

@@ -9,6 +9,12 @@ import android.widget.Toast
 import com.vlifte.autostarttv.LockScreenCodeEvent
 import com.vlifte.autostarttv.LogWriter
 import com.vlifte.autostarttv.ui.TvActivity
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import org.greenrobot.eventbus.EventBus
 import java.util.*
 
@@ -21,13 +27,18 @@ class LockTvReceiver : BroadcastReceiver() {
         //        const val WAKE_REQUEST_CODE = "SLEEP_REQUEST_CODE"
         const val ACTION_CLOSE = "close_action"
         const val ACTION_BLACK_SCREEN = "black_screen"
+
+        private val myEvent = MutableSharedFlow<LockScreenCodeEvent>(
+            replay = 1,
+            onBufferOverflow = BufferOverflow.DROP_LATEST
+        )
+        val event = myEvent.asSharedFlow()
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
         val androidVersion = Build.VERSION.SDK_INT
-        intent?.let { i ->
-            val code = i.extras?.getInt(SLEEP_REQUEST_CODE)
-            EventBus.getDefault().post(
+        intent?.let { i ->            val code = i.extras?.getInt(SLEEP_REQUEST_CODE)
+            myEvent.tryEmit(
                 if (androidVersion < Build.VERSION_CODES.R) {
                     LockScreenCodeEvent.EVENT_CLOSE
                 } else {

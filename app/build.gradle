@@ -51,7 +51,7 @@ dependencies {
     def protobuf = "3.11.0"
     def preference = "1.1.1"
 
-    def hilt = "2.38.1"
+    def hilt = "2.46.1"
     def hiltViewModel = "1.0.0-alpha03"
 
     def activityKtx = "1.3.1"
@@ -68,10 +68,10 @@ dependencies {
     implementation 'com.google.android.material:material:1.4.0'
 
     implementation "com.google.dagger:hilt-android:$hilt"
-    kapt "com.google.dagger:hilt-android-compiler:$hilt"
-    implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltViewModel"
-    kapt "androidx.hilt:hilt-compiler:$hiltViewModel"
-
+    annotationProcessor "com.google.dagger:hilt-compiler:$hilt"
+//    implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltViewModel"
+    kapt("com.google.dagger:hilt-android-compiler:2.46.1")
+    implementation "androidx.navigation:navigation-compose:2.5.3"
     implementation "androidx.datastore:datastore:$datastore"
     implementation "com.google.protobuf:protobuf-javalite:$protobuf"
     implementation "androidx.preference:preference-ktx:$preference"
@@ -88,10 +88,10 @@ dependencies {
     implementation 'com.jakewharton:process-phoenix:2.1.2'
 
 
-    implementation "com.google.dagger:hilt-android:$hilt"
-    kapt "com.google.dagger:hilt-android-compiler:$hilt"
-    implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltViewModel"
-    kapt "androidx.hilt:hilt-compiler:$hiltViewModel"
+//    implementation "com.google.dagger:hilt-android:$hilt"
+//    kapt "com.google.dagger:hilt-android-compiler:$hilt"
+//    implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltViewModel"
+//    kapt "androidx.hilt:hilt-compiler:$hiltViewModel"
     implementation 'com.google.android.exoplayer:exoplayer:2.18.3'
 
     implementation "com.squareup.retrofit2:retrofit:$retrofit"
@@ -102,6 +102,8 @@ dependencies {
     implementation "com.github.bumptech.glide:glide:$glideVersion"
     kapt "com.github.bumptech.glide:compiler:$glideVersion"
     implementation("org.greenrobot:eventbus:3.3.1")
+
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1"
 }
 
 protobuf {
