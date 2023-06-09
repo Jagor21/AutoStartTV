@@ -92,7 +92,7 @@ dependencies {
 //    kapt "com.google.dagger:hilt-android-compiler:$hilt"
 //    implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltViewModel"
 //    kapt "androidx.hilt:hilt-compiler:$hiltViewModel"
-    implementation 'com.google.android.exoplayer:exoplayer:2.18.3'
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.7'
 
     implementation "com.squareup.retrofit2:retrofit:$retrofit"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit"

@@ -22,6 +22,8 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.util.Util
 import com.google.android.material.button.MaterialButton
 import com.sgvdev.autostart.models.AdRequest
 import com.sgvdev.autostart.models.ContentX
@@ -80,6 +82,7 @@ class TvActivity : AppCompatActivity() {
         Log.d("TvActivity", "TvActivity onCreate")
         LogWriter.log(this, sBody = "TvActivity: onCreate")
         bindViews()
+        initExoPlayer()
         settingsDialog = SettingsBottomSheetDialog(this, appSettings, lifecycleScope)
         tvWebViewClient = TvWebViewClient(this)
         Log.d("TvActivity", "TvActivity onCreate observeSettingsDialog")
@@ -123,6 +126,14 @@ class TvActivity : AppCompatActivity() {
         }
     }
 
+    private fun initExoPlayer() {
+        exoPlayer = ExoPlayer.Builder(this@TvActivity).build()
+        playerView.player = exoPlayer
+        playerView.player?.volume = 1f
+        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+        exoPlayer.playWhenReady = true
+    }
+
     private fun playAd() {
         launch {
             while (needLoadAd) {
@@ -137,21 +148,22 @@ class TvActivity : AppCompatActivity() {
                     } else {
                         imageAd.visibility = View.INVISIBLE
                         playerView.visibility = View.VISIBLE
-                        exoPlayer = ExoPlayer.Builder(this@TvActivity).build()
-                        playerView.player = exoPlayer
-                        playerView.player?.volume = 1f
+//                        exoPlayer = ExoPlayer.Builder(this@TvActivity).build()
+//                        playerView.player = exoPlayer
+//                        playerView.player?.volume = 1f
+                        exoPlayer.clearMediaItems()
                         val mediaItem: MediaItem =
                             MediaItem.fromUri(contentX.file.url)
                         exoPlayer.addMediaItem(mediaItem)
                         exoPlayer.prepare()
-                        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-                        exoPlayer.playWhenReady = true
+//                        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+//                        exoPlayer.playWhenReady = true
 //                        isCurrentAdVideo = true
                         Log.d("MainActivity", "mediaItemCount ${exoPlayer.mediaItemCount}")
                     }
                     delay(/*if (isCurrentAdVideo) exoPlayer.duration + 3000L else*/ contentX.duration.toInt() * 1000L)
 
-                    exoPlayer.clearMediaItems()
+//                    exoPlayer.clearMediaItems()
 
                     try {
                         exoPlayer.release()
