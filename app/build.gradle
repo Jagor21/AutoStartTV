@@ -3,8 +3,9 @@ plugins {
     id 'kotlin-android'
     id "com.google.protobuf" version "0.8.12"
     id("dagger.hilt.android.plugin")
-    id("kotlin-kapt")
+    id 'kotlin-kapt'
     id 'com.google.firebase.crashlytics'
+    id 'org.jetbrains.kotlin.android'
 }
 
 android {
@@ -16,7 +17,7 @@ android {
 
     defaultConfig {
         applicationId "com.vlifte.autostarttv"
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 33
         versionCode 1
         versionName "1.0"
@@ -47,6 +48,7 @@ android {
 
 dependencies {
 
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     def datastore = "1.0.0-beta01"
     def protobuf = "3.11.0"
     def preference = "1.1.1"
@@ -93,6 +95,8 @@ dependencies {
 //    implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltViewModel"
 //    kapt "androidx.hilt:hilt-compiler:$hiltViewModel"
     implementation 'com.google.android.exoplayer:exoplayer:2.18.7'
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.18.7'
+    implementation 'com.google.android.exoplayer:exoplayer-ui:2.18.7'
 
     implementation "com.squareup.retrofit2:retrofit:$retrofit"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit"

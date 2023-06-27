@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import android.view.View
 import android.widget.*
 import androidx.annotation.ArrayRes
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -64,6 +65,14 @@ class SettingsBottomSheetDialog(
 
 //        getTimeFromAppSettings()
         val wakeContainer = findViewById<ConstraintLayout>(R.id.wake_time_container)
+        val tvWakeTimeTitle =findViewById<TextView>(R.id.tv_wake_time_title)
+        val tvSleepTimeTitle =findViewById<TextView>(R.id.tv_sleep_time_title)
+        val spinnerWakeHourContainer = findViewById<FrameLayout>(R.id.spinner_wake_hour_container)
+        val spinnerWakeMinuteContainer = findViewById<FrameLayout>(R.id.spinner_wake_minute_container)
+//        val btnSetWakeTime = findViewById<MaterialButton>(R.id.btn_set_wake_time)
+
+
+        val sleepContainer = findViewById<ConstraintLayout>(R.id.sleep_time_container)
 
         val androidVersion = Build.VERSION.SDK_INT
         if (androidVersion < Build.VERSION_CODES.R) {
@@ -74,6 +83,8 @@ class SettingsBottomSheetDialog(
 
         val spinnerSleepHour: Spinner? = findViewById(R.id.spinner_sleep_hour)
         val spinnerSleepMinute: Spinner? = findViewById(R.id.spinner_sleep_minute)
+        val spinnerSleepHourContainer: FrameLayout? = findViewById(R.id.spinner_sleep_hour_container)
+        val spinnerSleepMinuteContainer: FrameLayout? = findViewById(R.id.spinner_sleep_minute_container)
 
         val spinnerWakeHour: Spinner? = findViewById(R.id.spinner_wake_hour)
         val spinnerWakeMinute: Spinner? = findViewById(R.id.spinner_wake_minute)
@@ -91,9 +102,55 @@ class SettingsBottomSheetDialog(
 
         val gTimers = findViewById<Group>(R.id.g_timers)
 
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            gTimers?.isGone = true
+        when(Build.VERSION.SDK_INT) {
+            in Build.VERSION_CODES.BASE..Build.VERSION_CODES.M ->{
+                wakeContainer?.isGone = true
+                sleepContainer?.isGone = true
+                tvSleepTimeTitle?.isGone = true
+                spinnerSleepHourContainer?.isGone = true
+                spinnerSleepMinuteContainer?.isGone = true
+                btnSetSleepTime?.isGone = true
+
+                sleepContainer?.isGone = false
+                tvWakeTimeTitle?.isGone = true
+                spinnerWakeHourContainer?.isGone = true
+                spinnerWakeMinuteContainer?.isGone = true
+                btnSetWakeTime?.isGone = true
+            }
+            Build.VERSION_CODES.P -> {
+                tvWakeTimeTitle?.isGone = true
+                spinnerWakeHourContainer?.isGone = true
+                spinnerWakeMinuteContainer?.isGone = true
+                btnSetWakeTime?.isGone = true
+            }
+
+            in Build.VERSION_CODES.Q..Build.VERSION_CODES.TIRAMISU -> {
+
+            }
+
         }
+
+//        if(Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
+//            sleepContainer?.isGone = false
+//            tvWakeTimeTitle?.isGone = true
+//            spinnerWakeHourContainer?.isGone = true
+//            spinnerWakeMinuteContainer?.isGone = true
+//            btnSetWakeTime?.isGone = true
+//        }
+//        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+//            wakeContainer?.isGone = true
+//            sleepContainer?.isGone = true
+//            tvSleepTimeTitle?.isGone = true
+//            spinnerSleepHourContainer?.isGone = true
+//            spinnerSleepMinuteContainer?.isGone = true
+//            btnSetSleepTime?.isGone = true
+//
+//            sleepContainer?.isGone = false
+//            tvWakeTimeTitle?.isGone = true
+//            spinnerWakeHourContainer?.isGone = true
+//            spinnerWakeMinuteContainer?.isGone = true
+//            btnSetWakeTime?.isGone = true
+//        }
 
 
         createSpinnerAdapter(spinnerSleepHour, R.array.sleep_hours, TimeUtils.sleepHour)

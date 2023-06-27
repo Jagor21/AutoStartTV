@@ -3,6 +3,7 @@ package com.vlifte.autostarttv.ui
 import android.content.*
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -21,8 +22,20 @@ import com.bumptech.glide.Glide
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.source.dash.DashMediaSource
 import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.upstream.FileDataSource
+import com.google.android.exoplayer2.upstream.cache.Cache
+import com.google.android.exoplayer2.upstream.cache.CacheDataSink
+import com.google.android.exoplayer2.upstream.cache.CacheDataSource
+import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
+import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.google.android.exoplayer2.util.Util
 import com.google.android.material.button.MaterialButton
 import com.sgvdev.autostart.models.AdRequest
@@ -34,9 +47,13 @@ import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.ACTION_BLACK_SCR
 import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.ACTION_CLOSE
 import com.vlifte.autostarttv.ui.viewmodel.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -75,6 +92,9 @@ class TvActivity : AppCompatActivity() {
     private lateinit var exoPlayer: ExoPlayer
     private lateinit var playerView: StyledPlayerView
     private lateinit var imageAd: ImageView
+
+    private var downloadCache: Cache? = null
+    private val DOWNLOAD_CONTENT_DIRECTORY = "downloads"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,11 +147,10 @@ class TvActivity : AppCompatActivity() {
     }
 
     private fun initExoPlayer() {
-        exoPlayer = ExoPlayer.Builder(this@TvActivity).build()
-        playerView.player = exoPlayer
-        playerView.player?.volume = 1f
-        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-        exoPlayer.playWhenReady = true
+//        exoPlayer = ExoPlayer.Builder(this@TvActivity).build()
+//        playerView.player = exoPlayer
+//        playerView.player?.volume = 1f
+//        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
     }
 
     private fun playAd() {
@@ -148,20 +167,27 @@ class TvActivity : AppCompatActivity() {
                     } else {
                         imageAd.visibility = View.INVISIBLE
                         playerView.visibility = View.VISIBLE
-//                        exoPlayer = ExoPlayer.Builder(this@TvActivity).build()
-//                        playerView.player = exoPlayer
-//                        playerView.player?.volume = 1f
-                        exoPlayer.clearMediaItems()
-                        val mediaItem: MediaItem =
-                            MediaItem.fromUri(contentX.file.url)
-                        exoPlayer.addMediaItem(mediaItem)
-                        exoPlayer.prepare()
-//                        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-//                        exoPlayer.playWhenReady = true
+                        exoPlayer = ExoPlayer.Builder(this@TvActivity).build()
+                        playerView.player = exoPlayer
+                        playerView.player?.volume = 1f
+                        withContext(Dispatchers.Main) {
+                            exoPlayer.clearMediaItems()
+                            val mediaItem: MediaItem =
+                                MediaItem.fromUri(contentX.file.url)
+//                            val mediaSource = ProgressiveMediaSource.Factory(DefaultHttpDataSource.Factory()).createMediaSource(mediaItem)
+                            val mediaSource =
+                                ProgressiveMediaSource.Factory(buildCacheDataSourceFactory()).createMediaSource(mediaItem)
+                            exoPlayer.setMediaSource(mediaSource)
+                            exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+                            exoPlayer.playWhenReady = true
+                            exoPlayer.prepare()
+                        }
 //                        isCurrentAdVideo = true
                         Log.d("MainActivity", "mediaItemCount ${exoPlayer.mediaItemCount}")
                     }
+
                     delay(/*if (isCurrentAdVideo) exoPlayer.duration + 3000L else*/ contentX.duration.toInt() * 1000L)
+//                    delay(exoPlayer.duration)
 
 //                    exoPlayer.clearMediaItems()
 
@@ -181,29 +207,55 @@ class TvActivity : AppCompatActivity() {
         }
     }
 
+    fun buildCacheDataSourceFactory(): DataSource.Factory {
+        val cache = getDownloadCache()
+        val cacheSink = CacheDataSink.Factory()
+            .setCache(cache)
+        val upstreamFactory = DefaultDataSource.Factory(this, DefaultHttpDataSource.Factory())
+        return CacheDataSource.Factory()
+            .setCache(cache)
+            .setCacheWriteDataSinkFactory(cacheSink)
+            .setCacheReadDataSourceFactory(FileDataSource.Factory())
+            .setUpstreamDataSourceFactory(upstreamFactory)
+            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+    }
+    @Synchronized
+    private fun getDownloadCache(): Cache {
+        if (downloadCache == null) {
+            val downloadContentDirectory = File(
+                getExternalFilesDir(null),
+                DOWNLOAD_CONTENT_DIRECTORY
+            )
+            downloadCache =
+                SimpleCache(downloadContentDirectory, NoOpCacheEvictor(), StandaloneDatabaseProvider(this))
+        }
+        return downloadCache!!
+    }
+
     private fun observeLockReceiver() {
         LockTvReceiver.event.onEach { event ->
             when (event) {
                 LockScreenCodeEvent.EVENT_CLOSE -> {
-                    Log.d(
-                        "TvActivity: onNewIntent",
-                        ""
-                    )
-                    webView?.loadDataWithBaseURL(
-                        "file:///android_asset/",
-                        BLR_LOGO_HTML,
-                        "text/html",
-                        "UTF-8",
-                        null
-                    )
-                    needLoadBaseUrl = true
-                    viewModel.needLoadAd = false
-                    needLoadAd = false
-                    tvWebViewClient.isSleepLoadFinished = true
+//                    Log.d(
+//                        "TvActivity: onNewIntent",
+//                        ""
+//                    )
+//                    webView?.loadDataWithBaseURL(
+//                        "file:///android_asset/",
+//                        BLR_LOGO_HTML,
+//                        "text/html",
+//                        "UTF-8",
+//                        null
+//                    )
+//                    needLoadBaseUrl = true
+//                    viewModel.needLoadAd = false
+//                    needLoadAd = false
+//                    tvWebViewClient.isSleepLoadFinished = true
                     Settings.System.putInt(
                         this@TvActivity.contentResolver,
                         Settings.System.SCREEN_OFF_TIMEOUT, (5000)
                     )
+                    LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
                 }
 
                 LockScreenCodeEvent.EVENT_BLACK_SCREEN -> {
@@ -215,7 +267,7 @@ class TvActivity : AppCompatActivity() {
                 LockScreenCodeEvent.EVENT_BLACK_SCREEN_OFF -> {
                     LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
                     vBlackScreen.isGone = true
-                    exoPlayer.release()
+//                    exoPlayer.release()
                     recreate()
                 }
 
@@ -330,24 +382,26 @@ class TvActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("TvActivity", "TvActivity onResume")
-        if (Settings.System.canWrite(this)) {
-            LogWriter.log(
-                this,
-                "TvActivity: SCREEN_OFF_TIMEOUT set to ${
-                    Settings.System.getInt(
-                        this.contentResolver,
-                        Settings.System.SCREEN_OFF_TIMEOUT
-                    )
-                }"
-            )
-            Settings.System.putInt(
-                this.contentResolver,
-                Settings.System.SCREEN_OFF_TIMEOUT, (24 * 3600000)
-            )
-        } else {
-            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
-            intent.data = Uri.parse("package:" + this.packageName)
-            startActivity(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Settings.System.canWrite(this)) {
+                LogWriter.log(
+                    this,
+                    "TvActivity: SCREEN_OFF_TIMEOUT set to ${
+                        Settings.System.getInt(
+                            this.contentResolver,
+                            Settings.System.SCREEN_OFF_TIMEOUT
+                        )
+                    }"
+                )
+                Settings.System.putInt(
+                    this.contentResolver,
+                    Settings.System.SCREEN_OFF_TIMEOUT, (24 * 3600000)
+                )
+            } else {
+                val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
+                intent.data = Uri.parse("package:" + this.packageName)
+                startActivity(intent)
+            }
         }
         observeTvWebViewClient()
 
@@ -455,12 +509,13 @@ class TvActivity : AppCompatActivity() {
 //        webView?.loadDataWithBaseURL("file:///android_asset/", BLR_LOGO_HTML, "text/html", "UTF-8", null)
     }
 
-//    override fun onDestroy() {
+    override fun onDestroy() {
 //        if (::lockTvReceiver.isInitialized) {
 //            unregisterReceiver(lockTvReceiver)
 //        }
-//        super.onDestroy()
-//    }
+        exoPlayer.release()
+        super.onDestroy()
+    }
 
     private fun bindViews() {
         btnSendLogs = findViewById(R.id.btn_send_logs)
