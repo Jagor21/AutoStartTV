@@ -22,13 +22,12 @@ import com.bumptech.glide.Glide
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.Player.Listener
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.source.dash.DashMediaSource
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.upstream.FileDataSource
 import com.google.android.exoplayer2.upstream.cache.Cache
@@ -36,27 +35,19 @@ import com.google.android.exoplayer2.upstream.cache.CacheDataSink
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
-import com.google.android.exoplayer2.util.Util
 import com.google.android.material.button.MaterialButton
 import com.sgvdev.autostart.models.AdRequest
 import com.sgvdev.autostart.models.ContentX
 import com.vlifte.autostarttv.*
 import com.vlifte.autostarttv.TvWebViewClient.Companion.BLR_LOGO_HTML
 import com.vlifte.autostarttv.receiver.LockTvReceiver
-import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.ACTION_BLACK_SCREEN
-import com.vlifte.autostarttv.receiver.LockTvReceiver.Companion.ACTION_CLOSE
 import com.vlifte.autostarttv.ui.viewmodel.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import java.io.File
 import javax.inject.Inject
 
@@ -95,6 +86,8 @@ class TvActivity : AppCompatActivity() {
 
     private var downloadCache: Cache? = null
     private val DOWNLOAD_CONTENT_DIRECTORY = "downloads"
+
+    private var duration = 10000L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -176,18 +169,36 @@ class TvActivity : AppCompatActivity() {
                                 MediaItem.fromUri(contentX.file.url)
 //                            val mediaSource = ProgressiveMediaSource.Factory(DefaultHttpDataSource.Factory()).createMediaSource(mediaItem)
                             val mediaSource =
-                                ProgressiveMediaSource.Factory(buildCacheDataSourceFactory()).createMediaSource(mediaItem)
+                                ProgressiveMediaSource.Factory(buildCacheDataSourceFactory())
+                                    .createMediaSource(mediaItem)
+
                             exoPlayer.setMediaSource(mediaSource)
                             exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
                             exoPlayer.playWhenReady = true
                             exoPlayer.prepare()
+//                            Log.d("VIDEO_DURATION", "video duration is ${exoPlayer.duration / 1000}")
+                            exoPlayer.addListener(object : Listener {
+                                override fun onPlayerStateChanged(
+                                    playWhenReady: Boolean,
+                                    playbackState: Int
+                                ) {
+                                    if (playbackState == ExoPlayer.STATE_READY) {
+                                        val realDurationMillis = exoPlayer.duration
+                                        duration = realDurationMillis
+                                    }
+                                    if (playbackState == ExoPlayer.STATE_ENDED) {
+                                    }
+                                }
+                            })
                         }
 //                        isCurrentAdVideo = true
-                        Log.d("MainActivity", "mediaItemCount ${exoPlayer.mediaItemCount}")
                     }
+// TODO: UNCOMMENT THIS
+//                    delay(/*if (isCurrentAdVideo) exoPlayer.duration + 3000L else*/ contentX.duration.toInt() * 1000L)
+                    Log.d("VIDEO_DURATION", "video duration is $duration")
+                    Log.d("VIDEO_DURATION", "contentX video duration is ${contentX.duration.toInt() * 1000L}")
+                    delay(duration)
 
-                    delay(/*if (isCurrentAdVideo) exoPlayer.duration + 3000L else*/ contentX.duration.toInt() * 1000L)
-//                    delay(exoPlayer.duration)
 
 //                    exoPlayer.clearMediaItems()
 
@@ -207,6 +218,7 @@ class TvActivity : AppCompatActivity() {
         }
     }
 
+    @Synchronized
     fun buildCacheDataSourceFactory(): DataSource.Factory {
         val cache = getDownloadCache()
         val cacheSink = CacheDataSink.Factory()
@@ -219,6 +231,7 @@ class TvActivity : AppCompatActivity() {
             .setUpstreamDataSourceFactory(upstreamFactory)
             .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
     }
+
     @Synchronized
     private fun getDownloadCache(): Cache {
         if (downloadCache == null) {
@@ -227,7 +240,11 @@ class TvActivity : AppCompatActivity() {
                 DOWNLOAD_CONTENT_DIRECTORY
             )
             downloadCache =
-                SimpleCache(downloadContentDirectory, NoOpCacheEvictor(), StandaloneDatabaseProvider(this))
+                SimpleCache(
+                    downloadContentDirectory,
+                    NoOpCacheEvictor(),
+                    StandaloneDatabaseProvider(this)
+                )
         }
         return downloadCache!!
     }
@@ -261,13 +278,16 @@ class TvActivity : AppCompatActivity() {
                 LockScreenCodeEvent.EVENT_BLACK_SCREEN -> {
                     viewModel.needLoadAd = false
                     exoPlayer.stop()
+                    exoPlayer.release()
                     vBlackScreen.isGone = false
                 }
 
                 LockScreenCodeEvent.EVENT_BLACK_SCREEN_OFF -> {
+                    downloadCache?.release()
+                    downloadCache = null
                     LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
                     vBlackScreen.isGone = true
-//                    exoPlayer.release()
+                    exoPlayer.release()
                     recreate()
                 }
 
