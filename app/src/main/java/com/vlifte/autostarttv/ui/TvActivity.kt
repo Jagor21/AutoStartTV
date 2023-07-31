@@ -253,21 +253,6 @@ class TvActivity : AppCompatActivity() {
         LockTvReceiver.event.onEach { event ->
             when (event) {
                 LockScreenCodeEvent.EVENT_CLOSE -> {
-//                    Log.d(
-//                        "TvActivity: onNewIntent",
-//                        ""
-//                    )
-//                    webView?.loadDataWithBaseURL(
-//                        "file:///android_asset/",
-//                        BLR_LOGO_HTML,
-//                        "text/html",
-//                        "UTF-8",
-//                        null
-//                    )
-//                    needLoadBaseUrl = true
-//                    viewModel.needLoadAd = false
-//                    needLoadAd = false
-//                    tvWebViewClient.isSleepLoadFinished = true
                     Settings.System.putInt(
                         this@TvActivity.contentResolver,
                         Settings.System.SCREEN_OFF_TIMEOUT, (5000)
@@ -287,6 +272,7 @@ class TvActivity : AppCompatActivity() {
                     downloadCache = null
                     LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
                     vBlackScreen.isGone = true
+                    exoPlayer.stop()
                     exoPlayer.release()
                     recreate()
                 }
@@ -294,45 +280,7 @@ class TvActivity : AppCompatActivity() {
                 LockScreenCodeEvent.NONE -> {}
             }
         }.launchIn(lifecycleScope)
-
     }
-
-//    override fun onNewIntent(intent: Intent?) {
-//        super.onNewIntent(null)
-//        intent?.let {
-//            if (it.getBooleanExtra(ACTION_CLOSE, false)) {
-////                tvWebViewClient.isSleepLoadFinished = true
-//                Log.d(
-//                    "TvActivity: onNewIntent",
-//                    ""
-//                )
-//                webView?.loadDataWithBaseURL(
-//                    "file:///android_asset/",
-//                    BLR_LOGO_HTML,
-//                    "text/html",
-//                    "UTF-8",
-//                    null
-//                )
-//                needLoadBaseUrl = true
-//                viewModel.needLoadAd = false
-//                needLoadAd = false
-//                tvWebViewClient.isSleepLoadFinished = true
-//                Settings.System.putInt(
-//                    this.contentResolver,
-//                    Settings.System.SCREEN_OFF_TIMEOUT, (5000)
-//                )
-//            }
-//
-//            if (it.getBooleanExtra(ACTION_BLACK_SCREEN, false)) {
-//                viewModel.needLoadAd = false
-//                exoPlayer.stop()
-//                vBlackScreen.isGone = false
-//            } else {
-//                recreate()
-//            }
-//        }
-//    }
-
 
     private fun observeTvWebViewClient() {
         tvWebViewClient.apply {
@@ -530,11 +478,19 @@ class TvActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-//        if (::lockTvReceiver.isInitialized) {
-//            unregisterReceiver(lockTvReceiver)
-//        }
-        exoPlayer.release()
         super.onDestroy()
+        downloadCache?.release()
+        downloadCache = null
+        exoPlayer.stop()
+        exoPlayer.release()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        downloadCache?.release()
+        downloadCache = null
+        exoPlayer.stop()
+        exoPlayer.release()
     }
 
     private fun bindViews() {
