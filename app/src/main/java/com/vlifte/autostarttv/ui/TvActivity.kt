@@ -158,6 +158,12 @@ class TvActivity : AppCompatActivity() {
                         Glide.with(imageAd).load(contentX.file.url).into(imageAd)
 //                        isCurrentAdVideo = false
                     } else {
+
+                        try {
+                            exoPlayer.release()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                         imageAd.visibility = View.INVISIBLE
                         playerView.visibility = View.VISIBLE
                         exoPlayer = ExoPlayer.Builder(this@TvActivity).build()
@@ -202,11 +208,6 @@ class TvActivity : AppCompatActivity() {
 
 //                    exoPlayer.clearMediaItems()
 
-                    try {
-                        exoPlayer.release()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
                 }
 //                currentAdList.forEach {
 //                    Log.d("PLAY_AD", it.file.url)
@@ -268,11 +269,11 @@ class TvActivity : AppCompatActivity() {
                 }
 
                 LockScreenCodeEvent.EVENT_BLACK_SCREEN_OFF -> {
+                    exoPlayer.stop()
                     downloadCache?.release()
                     downloadCache = null
                     LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
                     vBlackScreen.isGone = true
-                    exoPlayer.stop()
                     exoPlayer.release()
                     recreate()
                 }
