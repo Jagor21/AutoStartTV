@@ -65,10 +65,11 @@ class SettingsBottomSheetDialog(
 
 //        getTimeFromAppSettings()
         val wakeContainer = findViewById<ConstraintLayout>(R.id.wake_time_container)
-        val tvWakeTimeTitle =findViewById<TextView>(R.id.tv_wake_time_title)
-        val tvSleepTimeTitle =findViewById<TextView>(R.id.tv_sleep_time_title)
+        val tvWakeTimeTitle = findViewById<TextView>(R.id.tv_wake_time_title)
+        val tvSleepTimeTitle = findViewById<TextView>(R.id.tv_sleep_time_title)
         val spinnerWakeHourContainer = findViewById<FrameLayout>(R.id.spinner_wake_hour_container)
-        val spinnerWakeMinuteContainer = findViewById<FrameLayout>(R.id.spinner_wake_minute_container)
+        val spinnerWakeMinuteContainer =
+            findViewById<FrameLayout>(R.id.spinner_wake_minute_container)
 //        val btnSetWakeTime = findViewById<MaterialButton>(R.id.btn_set_wake_time)
 
 
@@ -83,8 +84,10 @@ class SettingsBottomSheetDialog(
 
         val spinnerSleepHour: Spinner? = findViewById(R.id.spinner_sleep_hour)
         val spinnerSleepMinute: Spinner? = findViewById(R.id.spinner_sleep_minute)
-        val spinnerSleepHourContainer: FrameLayout? = findViewById(R.id.spinner_sleep_hour_container)
-        val spinnerSleepMinuteContainer: FrameLayout? = findViewById(R.id.spinner_sleep_minute_container)
+        val spinnerSleepHourContainer: FrameLayout? =
+            findViewById(R.id.spinner_sleep_hour_container)
+        val spinnerSleepMinuteContainer: FrameLayout? =
+            findViewById(R.id.spinner_sleep_minute_container)
 
         val spinnerWakeHour: Spinner? = findViewById(R.id.spinner_wake_hour)
         val spinnerWakeMinute: Spinner? = findViewById(R.id.spinner_wake_minute)
@@ -102,8 +105,8 @@ class SettingsBottomSheetDialog(
 
         val gTimers = findViewById<Group>(R.id.g_timers)
 
-        when(Build.VERSION.SDK_INT) {
-            in Build.VERSION_CODES.BASE..Build.VERSION_CODES.M ->{
+        when (Build.VERSION.SDK_INT) {
+            in Build.VERSION_CODES.BASE..Build.VERSION_CODES.M -> {
                 wakeContainer?.isGone = true
                 sleepContainer?.isGone = true
                 tvSleepTimeTitle?.isGone = true
@@ -117,6 +120,7 @@ class SettingsBottomSheetDialog(
                 spinnerWakeMinuteContainer?.isGone = true
                 btnSetWakeTime?.isGone = true
             }
+
             Build.VERSION_CODES.P -> {
                 tvWakeTimeTitle?.isGone = true
                 spinnerWakeHourContainer?.isGone = true
@@ -324,12 +328,14 @@ class SettingsBottomSheetDialog(
                 )
             }"
         )
-
-        alarmManager.set(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            pendingIntent
+        alarmManager.setAlarmClock(
+            AlarmManager.AlarmClockInfo(calendar.timeInMillis, pendingIntent), pendingIntent
         )
+//        alarmManager.set(
+//            AlarmManager.RTC_WAKEUP,
+//            calendar.timeInMillis,
+//            pendingIntent
+//        )
 //        if (Settings.System.canWrite(context)){
 
         LogWriter.log(
@@ -381,6 +387,7 @@ class SettingsBottomSheetDialog(
                         appSettings.setAdUrl(CONNECT_MONITOR_URL)
                         CONNECT_MONITOR_URL
                     }
+
                     else -> settings.adUrl
                 }
                 if (isBase) {

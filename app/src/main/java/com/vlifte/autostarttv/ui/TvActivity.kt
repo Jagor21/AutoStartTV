@@ -18,6 +18,7 @@ import androidx.core.content.FileProvider
 import androidx.core.view.isGone
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.C
 import com.bumptech.glide.Glide
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
@@ -92,6 +93,7 @@ class TvActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tv)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         Log.d("TvActivity", "TvActivity onCreate")
         LogWriter.log(this, sBody = "TvActivity: onCreate")
         bindViews()
@@ -172,7 +174,14 @@ class TvActivity : AppCompatActivity() {
                         withContext(Dispatchers.Main) {
                             exoPlayer.clearMediaItems()
                             val mediaItem: MediaItem =
-                                MediaItem.fromUri(contentX.file.url)
+                                MediaItem.Builder().setDrmConfiguration(
+                                    MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+                                        .setForceSessionsForAudioAndVideoTracks(true)
+                                        .build()
+                                )
+                                    .setUri(contentX.file.url)
+                                    .build()
+//                            MediaItem.fromUri(contentX.file.url)
 //                            val mediaSource = ProgressiveMediaSource.Factory(DefaultHttpDataSource.Factory()).createMediaSource(mediaItem)
                             val mediaSource =
                                 ProgressiveMediaSource.Factory(buildCacheDataSourceFactory())
@@ -202,7 +211,10 @@ class TvActivity : AppCompatActivity() {
 // TODO: UNCOMMENT THIS
 //                    delay(/*if (isCurrentAdVideo) exoPlayer.duration + 3000L else*/ contentX.duration.toInt() * 1000L)
                     Log.d("VIDEO_DURATION", "video duration is $duration")
-                    Log.d("VIDEO_DURATION", "contentX video duration is ${contentX.duration.toInt() * 1000L}")
+                    Log.d(
+                        "VIDEO_DURATION",
+                        "contentX video duration is ${contentX.duration.toInt() * 1000L}"
+                    )
                     delay(duration)
 
 
@@ -253,19 +265,19 @@ class TvActivity : AppCompatActivity() {
     private fun observeLockReceiver() {
         LockTvReceiver.event.onEach { event ->
             when (event) {
-                LockScreenCodeEvent.EVENT_CLOSE -> {
-                    Settings.System.putInt(
-                        this@TvActivity.contentResolver,
-                        Settings.System.SCREEN_OFF_TIMEOUT, (5000)
-                    )
-                    LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
-                }
+//                LockScreenCodeEvent.EVENT_CLOSE -> {
+//                    Settings.System.putInt(
+//                        this@TvActivity.contentResolver,
+//                        Settings.System.SCREEN_OFF_TIMEOUT, (5000)
+//                    )
+//                    LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
+//                }
 
                 LockScreenCodeEvent.EVENT_BLACK_SCREEN -> {
                     viewModel.needLoadAd = false
                     exoPlayer.stop()
                     exoPlayer.release()
-                    vBlackScreen.isGone = false
+                    vBlackScreen.visibility = View.VISIBLE
                 }
 
                 LockScreenCodeEvent.EVENT_BLACK_SCREEN_OFF -> {
@@ -273,12 +285,13 @@ class TvActivity : AppCompatActivity() {
                     downloadCache?.release()
                     downloadCache = null
                     LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
-                    vBlackScreen.isGone = true
+                    vBlackScreen.visibility = View.GONE
                     exoPlayer.release()
                     recreate()
                 }
 
-                LockScreenCodeEvent.NONE -> {}
+//                LockScreenCodeEvent.NONE -> {}
+                else -> {}
             }
         }.launchIn(lifecycleScope)
     }
@@ -416,7 +429,7 @@ class TvActivity : AppCompatActivity() {
 //        }
 
         checkToken()
-        vBlackScreen.isGone = true
+        vBlackScreen.visibility = View.GONE
     }
 
     private fun checkToken() {
