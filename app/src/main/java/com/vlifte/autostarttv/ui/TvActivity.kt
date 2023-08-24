@@ -127,6 +127,8 @@ class TvActivity : AppCompatActivity() {
             Log.d("AD_RESPONSE", it.toString())
             it.success.checksum?.let { newChecksum ->
                 if (currentCheckSum != newChecksum) {
+                    needLoadAd = false
+                    stopPlayer()
                     currentCheckSum = newChecksum
                     currentAdList.clear()
                     it.success.content?.let {
@@ -135,10 +137,18 @@ class TvActivity : AppCompatActivity() {
                             videoAdHashMap.clear()
                         }
                     }
+                    needLoadAd = true
                     playAd()
                 }
             }
         }
+    }
+
+    private fun stopPlayer() {
+        exoPlayer.stop()
+        downloadCache?.release()
+        downloadCache = null
+        exoPlayer.release()
     }
 
     private fun initExoPlayer() {
