@@ -328,9 +328,15 @@ class SettingsBottomSheetDialog(
                 )
             }"
         )
-        alarmManager.setAlarmClock(
-            AlarmManager.AlarmClockInfo(calendar.timeInMillis, pendingIntent), pendingIntent
+        alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            AlarmManager.INTERVAL_DAY,
+            pendingIntent
         )
+//        alarmManager.setAlarmClock(
+//            AlarmManager.AlarmClockInfo(calendar.timeInMillis, pendingIntent), pendingIntent
+//        )
 //        alarmManager.set(
 //            AlarmManager.RTC_WAKEUP,
 //            calendar.timeInMillis,
@@ -357,6 +363,7 @@ class SettingsBottomSheetDialog(
 //            context.startActivity(intent)
 //        }
     }
+
 
     fun getTimeFromAppSettings(immediately: Boolean = false) {
         launch {

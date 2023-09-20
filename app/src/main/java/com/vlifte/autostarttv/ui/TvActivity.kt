@@ -1,5 +1,7 @@
 package com.vlifte.autostarttv.ui
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.*
 import android.graphics.Bitmap
 import android.net.Uri
@@ -14,6 +16,7 @@ import android.webkit.WebSettings.LOAD_CACHE_ELSE_NETWORK
 import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.isGone
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -43,13 +46,17 @@ import com.vlifte.autostarttv.*
 import com.vlifte.autostarttv.TvWebViewClient.Companion.BLR_LOGO_HTML
 import com.vlifte.autostarttv.receiver.LockTvReceiver
 import com.vlifte.autostarttv.ui.viewmodel.MainActivityViewModel
+import com.vlifte.autostarttv.utils.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import javax.inject.Inject
 
 
@@ -90,6 +97,8 @@ class TvActivity : AppCompatActivity() {
 
     private var duration = 10000L
 
+    private var job: Job? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tv)
@@ -120,6 +129,7 @@ class TvActivity : AppCompatActivity() {
 //        observeSettingsDialog()
 
         viewModel.needLoadAd = true
+        resetAlarms()
     }
 
     private fun observeViewModel() {
@@ -127,6 +137,7 @@ class TvActivity : AppCompatActivity() {
             Log.d("AD_RESPONSE", it.toString())
             it.success.checksum?.let { newChecksum ->
                 if (currentCheckSum != newChecksum) {
+                    job?.let { it.cancel() }
                     needLoadAd = false
                     stopPlayer()
                     currentCheckSum = newChecksum
@@ -159,7 +170,7 @@ class TvActivity : AppCompatActivity() {
     }
 
     private fun playAd() {
-        launch {
+        job = launch {
             while (needLoadAd) {
                 currentAdList.forEach { contentX ->
                     Log.d("exoPlayer", contentX.file.url)
@@ -275,13 +286,13 @@ class TvActivity : AppCompatActivity() {
     private fun observeLockReceiver() {
         LockTvReceiver.event.onEach { event ->
             when (event) {
-//                LockScreenCodeEvent.EVENT_CLOSE -> {
-//                    Settings.System.putInt(
-//                        this@TvActivity.contentResolver,
-//                        Settings.System.SCREEN_OFF_TIMEOUT, (5000)
-//                    )
-//                    LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
-//                }
+                LockScreenCodeEvent.EVENT_CLOSE -> {
+                    Settings.System.putInt(
+                        this@TvActivity.contentResolver,
+                        Settings.System.SCREEN_OFF_TIMEOUT, (5000)
+                    )
+                    LockTvReceiver.resetMyEvent(LockScreenCodeEvent.NONE)
+                }
 
                 LockScreenCodeEvent.EVENT_BLACK_SCREEN -> {
                     viewModel.needLoadAd = false
@@ -300,8 +311,7 @@ class TvActivity : AppCompatActivity() {
                     recreate()
                 }
 
-//                LockScreenCodeEvent.NONE -> {}
-                else -> {}
+                LockScreenCodeEvent.NONE -> {}
             }
         }.launchIn(lifecycleScope)
     }
@@ -471,34 +481,144 @@ class TvActivity : AppCompatActivity() {
                 webViewClient = tvWebViewClient
                 settings.apply {
                     javaScriptEnabled = true
-//                    domStorageEnabled = true
                     settings.cacheMode = LOAD_CACHE_ELSE_NETWORK
                     settings.loadsImagesAutomatically = true
                     settings.mediaPlaybackRequiresUserGesture = false
                 }
-
-//                settingsDialog.getAdUrlFromAppSettings()
             }
         }
-//        val urls = listOf(
-//            "https://vlifte.by/content/testPicVideo/NwMP4/n2.mp4",
-//            "https://vlifte.by/content/Main_prog/Moby2.mp4",
-//            "https://vlifte.by/content/testPicVideo/NwMP4/n3.mp4",
-//            "https://vlifte.by/content/Main_prog/Moby.mp4",
-//            "https://vlifte.by/content/Main_prog/Ararat.mp4",
-//            "https://vlifte.by/content/Main_prog/Xiaomi_ATV_2.mp4",
-//            "https://vlifte.by/content/Main_prog/Xiaomi_ATV_3.mp4",
-//            "https://vlifte.by/content/Main_prog/A1_Smart_Sale.mp4",
+    }
+
+    private fun resetAlarms() {
+        var sleepHour = -1
+        var sleepMinute = -1
+        var wakeUpHour = -1
+        var wakeUpMinute = -1
+        launch {
+            appSettings.saved.collect {
+                sleepHour = it.sleepHour
+                sleepMinute = it.sleepMinute
+
+                wakeUpHour = it.wakeUpHour
+                wakeUpMinute = it.wakeUpMinute
+            }
+
+            when (Build.VERSION.SDK_INT) {
+                in Build.VERSION_CODES.BASE..Build.VERSION_CODES.M -> {
+                    setAlarm(
+                        hour = sleepHour,
+                        minute = sleepMinute,
+                        LockTvReceiver.SLEEP_REQUEST_CODE,
+                        LockTvReceiver.REQUEST_SLEEP_CODE
+                    )
+                }
+
+                Build.VERSION_CODES.P -> {
+                    setAlarm(
+                        hour = sleepHour,
+                        minute = sleepMinute,
+                        LockTvReceiver.SLEEP_REQUEST_CODE,
+                        LockTvReceiver.REQUEST_SLEEP_CODE
+                    )
+                    setAlarm(
+                        hour = wakeUpHour,
+                        minute = wakeUpMinute,
+                        LockTvReceiver.SLEEP_REQUEST_CODE,
+                        LockTvReceiver.REQUEST_WAKE_CODE
+                    )
+                }
+
+                in Build.VERSION_CODES.Q..Build.VERSION_CODES.TIRAMISU -> {
+
+                }
+
+            }
+        }
+    }
+
+    private fun setAlarm(
+        hour: Int = TimeUtils.sleepHour,
+        minute: Int = TimeUtils.sleepMinute,
+        requestCodeName: String,
+        requestCode: Int
+    ) {
+        val intent = Intent(this, LockTvReceiver::class.java)
+        intent.action = LockTvReceiver.ACTION_CLOSE
+        val pendingIntent = PendingIntent.getBroadcast(
+            this.applicationContext,
+            requestCode,
+            intent.putExtra(requestCodeName, requestCode),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
+        )
+
+        var alarmManager: AlarmManager =
+            ContextCompat.getSystemService(this, AlarmManager::class.java) as AlarmManager
+        alarmManager.cancel(pendingIntent)
+        val calendar: Calendar = Calendar.getInstance().apply {
+            timeInMillis = System.currentTimeMillis()
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+        }
+
+        if (calendar.before(Calendar.getInstance())) {
+            calendar.add(Calendar.DATE, 1)
+        }
+
+        val dateFormat = SimpleDateFormat("dd MM yyyy hh:mm:ss")
+
+        LogWriter.log(
+            this,
+            "SettingsBottomSheetDialog: setting lock alarm for $hour:$minute ${
+                dateFormat.format(calendar.time)
+            }"
+        )
+        Log.d(
+            "TV_ACTIVITY",
+            "SettingsBottomSheetDialog: setting lock alarm for $hour:$minute ${
+                dateFormat.format(
+                    calendar.time
+                )
+            }"
+        )
+        alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            AlarmManager.INTERVAL_DAY,
+            pendingIntent
+        )
+//        alarmManager.setAlarmClock(
+//            AlarmManager.AlarmClockInfo(calendar.timeInMillis, pendingIntent), pendingIntent
 //        )
-//        launch {
-//            while (needLoadAd) {
-//                for (url in adLinks) {
-//                    webView?.loadUrl(url)
-//                    delay(10000)
-//                }
-//            }
+//        alarmManager.set(
+//            AlarmManager.RTC_WAKEUP,
+//            calendar.timeInMillis,
+//            pendingIntent
+//        )
+//        if (Settings.System.canWrite(context)){
+
+        LogWriter.log(
+            this,
+            "TvActivity: SCREEN_OFF_TIMEOUT set to ${
+                Settings.System.getInt(
+                    this.contentResolver,
+                    Settings.System.SCREEN_OFF_TIMEOUT
+                )
+            }"
+        )
+        Settings.System.putInt(
+            this.contentResolver,
+            Settings.System.SCREEN_OFF_TIMEOUT, (24 * 3600000)
+        )
+//        } else {
+//            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
+//            intent.data = Uri.parse("package:" + context.packageName)
+//            context.startActivity(intent)
 //        }
-//        webView?.loadDataWithBaseURL("file:///android_asset/", BLR_LOGO_HTML, "text/html", "UTF-8", null)
     }
 
     override fun onDestroy() {
@@ -552,8 +672,8 @@ class TvActivity : AppCompatActivity() {
         startActivity(Intent.createChooser(i, "Send Email Using: "))
     }
 
-    private fun launch(block: suspend () -> Unit) {
-        lifecycleScope.launch {
+    private fun launch(block: suspend () -> Unit): Job {
+        return lifecycleScope.launch {
             block()
         }
     }
@@ -561,12 +681,6 @@ class TvActivity : AppCompatActivity() {
     private fun <T> Flow<T>.launchWhenResumed(lifecycleScope: LifecycleCoroutineScope) {
         lifecycleScope.launchWhenResumed {
             this@launchWhenResumed.collect()
-        }
-    }
-
-    private fun <T> Flow<T>.launchWhenStarted(lifecycleScope: LifecycleCoroutineScope) {
-        lifecycleScope.launchWhenStarted {
-            this@launchWhenStarted.collect()
         }
     }
 }
