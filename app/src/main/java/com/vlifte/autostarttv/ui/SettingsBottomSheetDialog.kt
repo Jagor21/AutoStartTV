@@ -157,11 +157,16 @@ class SettingsBottomSheetDialog(
 //        }
 
 
-        createSpinnerAdapter(spinnerSleepHour, R.array.sleep_hours, TimeUtils.sleepHour)
-        createSpinnerAdapter(spinnerSleepMinute, R.array.sleep_minutes, TimeUtils.sleepMinute)
+        launch {
+            appSettings.saved.collect {
 
-        createSpinnerAdapter(spinnerWakeHour, R.array.sleep_hours, TimeUtils.wakeHour)
-        createSpinnerAdapter(spinnerWakeMinute, R.array.sleep_minutes, TimeUtils.wakeMinute)
+                createSpinnerAdapter(spinnerSleepHour, R.array.sleep_hours, it.sleepHour)
+                createSpinnerAdapter(spinnerSleepMinute, R.array.sleep_minutes, it.sleepMinute)
+
+                createSpinnerAdapter(spinnerWakeHour, R.array.sleep_hours, it.wakeUpHour)
+                createSpinnerAdapter(spinnerWakeMinute, R.array.sleep_minutes, it.wakeUpMinute)
+            }
+        }
 
         etUrl?.setText(adUrl)
 
