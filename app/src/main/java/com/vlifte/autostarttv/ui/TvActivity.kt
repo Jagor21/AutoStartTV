@@ -501,37 +501,37 @@ class TvActivity : AppCompatActivity() {
 
                 wakeUpHour = it.wakeUpHour
                 wakeUpMinute = it.wakeUpMinute
-            }
 
-            when (Build.VERSION.SDK_INT) {
-                in Build.VERSION_CODES.BASE..Build.VERSION_CODES.M -> {
-                    setAlarm(
-                        hour = sleepHour,
-                        minute = sleepMinute,
-                        LockTvReceiver.SLEEP_REQUEST_CODE,
-                        LockTvReceiver.REQUEST_SLEEP_CODE
-                    )
+                when (Build.VERSION.SDK_INT) {
+                    in Build.VERSION_CODES.BASE..Build.VERSION_CODES.M -> {
+                        setAlarm(
+                            hour = sleepHour,
+                            minute = sleepMinute,
+                            LockTvReceiver.SLEEP_REQUEST_CODE,
+                            LockTvReceiver.REQUEST_SLEEP_CODE
+                        )
+                    }
+
+                    Build.VERSION_CODES.P -> {
+                        setAlarm(
+                            hour = sleepHour,
+                            minute = sleepMinute,
+                            LockTvReceiver.SLEEP_REQUEST_CODE,
+                            LockTvReceiver.REQUEST_SLEEP_CODE
+                        )
+                        setAlarm(
+                            hour = wakeUpHour,
+                            minute = wakeUpMinute,
+                            LockTvReceiver.SLEEP_REQUEST_CODE,
+                            LockTvReceiver.REQUEST_WAKE_CODE
+                        )
+                    }
+
+                    in Build.VERSION_CODES.Q..Build.VERSION_CODES.TIRAMISU -> {
+
+                    }
+
                 }
-
-                Build.VERSION_CODES.P -> {
-                    setAlarm(
-                        hour = sleepHour,
-                        minute = sleepMinute,
-                        LockTvReceiver.SLEEP_REQUEST_CODE,
-                        LockTvReceiver.REQUEST_SLEEP_CODE
-                    )
-                    setAlarm(
-                        hour = wakeUpHour,
-                        minute = wakeUpMinute,
-                        LockTvReceiver.SLEEP_REQUEST_CODE,
-                        LockTvReceiver.REQUEST_WAKE_CODE
-                    )
-                }
-
-                in Build.VERSION_CODES.Q..Build.VERSION_CODES.TIRAMISU -> {
-
-                }
-
             }
         }
     }
@@ -558,6 +558,7 @@ class TvActivity : AppCompatActivity() {
         var alarmManager: AlarmManager =
             ContextCompat.getSystemService(this, AlarmManager::class.java) as AlarmManager
         alarmManager.cancel(pendingIntent)
+
         val calendar: Calendar = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
             set(Calendar.HOUR_OF_DAY, hour)
