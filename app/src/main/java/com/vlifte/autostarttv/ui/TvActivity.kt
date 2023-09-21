@@ -400,9 +400,13 @@ class TvActivity : AppCompatActivity() {
                     Settings.System.SCREEN_OFF_TIMEOUT, (24 * 3600000)
                 )
             } else {
-                val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
-                intent.data = Uri.parse("package:" + this.packageName)
-                startActivity(intent)
+                try {
+                    val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
+                    intent.data = Uri.parse("package:" + this.packageName)
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    e.localizedMessage?.let { Log.e("TvActivity - onResume", it) }
+                }
             }
         }
         observeTvWebViewClient()
