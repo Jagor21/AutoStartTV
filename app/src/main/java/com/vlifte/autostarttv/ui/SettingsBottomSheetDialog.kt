@@ -333,15 +333,19 @@ class SettingsBottomSheetDialog(
                 )
             }"
         )
-        alarmManager.setRepeating(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
-            pendingIntent
-        )
-//        alarmManager.setAlarmClock(
-//            AlarmManager.AlarmClockInfo(calendar.timeInMillis, pendingIntent), pendingIntent
+//        alarmManager.setRepeating(
+//            AlarmManager.RTC_WAKEUP,
+//            calendar.timeInMillis,
+//            AlarmManager.INTERVAL_DAY,
+//            pendingIntent
 //        )
+        try {
+            alarmManager.setAlarmClock(
+                AlarmManager.AlarmClockInfo(calendar.timeInMillis, pendingIntent), pendingIntent
+            )
+        } catch (e: SecurityException) {
+            e.localizedMessage?.let { Log.d("Set alarm", it) }
+        }
 //        alarmManager.set(
 //            AlarmManager.RTC_WAKEUP,
 //            calendar.timeInMillis,
