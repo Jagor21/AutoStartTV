@@ -523,16 +523,27 @@ class TvActivity : AppCompatActivity() {
                             LockTvReceiver.SLEEP_REQUEST_CODE,
                             LockTvReceiver.REQUEST_SLEEP_CODE
                         )
+//                        setAlarm(
+//                            hour = wakeUpHour,
+//                            minute = wakeUpMinute,
+//                            LockTvReceiver.SLEEP_REQUEST_CODE,
+//                            LockTvReceiver.REQUEST_WAKE_CODE
+//                        )
+                    }
+
+                    in Build.VERSION_CODES.Q..Build.VERSION_CODES.TIRAMISU -> {
+                        setAlarm(
+                            hour = sleepHour,
+                            minute = sleepMinute,
+                            LockTvReceiver.SLEEP_REQUEST_CODE,
+                            LockTvReceiver.REQUEST_SLEEP_CODE
+                        )
                         setAlarm(
                             hour = wakeUpHour,
                             minute = wakeUpMinute,
                             LockTvReceiver.SLEEP_REQUEST_CODE,
                             LockTvReceiver.REQUEST_WAKE_CODE
                         )
-                    }
-
-                    in Build.VERSION_CODES.Q..Build.VERSION_CODES.TIRAMISU -> {
-
                     }
 
                 }
