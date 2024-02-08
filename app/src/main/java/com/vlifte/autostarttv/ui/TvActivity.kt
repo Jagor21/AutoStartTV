@@ -56,6 +56,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
+import java.time.LocalTime
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -102,7 +103,9 @@ class TvActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tv)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
         Log.d("TvActivity", "TvActivity onCreate")
         LogWriter.log(this, sBody = "TvActivity: onCreate")
         bindViews()
@@ -181,51 +184,52 @@ class TvActivity : AppCompatActivity() {
                         Glide.with(imageAd).load(contentX.file.url).into(imageAd)
 //                        isCurrentAdVideo = false
                     } else {
-
-                        try {
-                            exoPlayer.release()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                        imageAd.visibility = View.INVISIBLE
-                        playerView.visibility = View.VISIBLE
-                        exoPlayer = ExoPlayer.Builder(this@TvActivity).build()
-                        playerView.player = exoPlayer
-                        playerView.player?.volume = 1f
-                        withContext(Dispatchers.Main) {
-                            exoPlayer.clearMediaItems()
-                            val mediaItem: MediaItem =
-                                MediaItem.Builder().setDrmConfiguration(
-                                    MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
-                                        .setForceSessionsForAudioAndVideoTracks(true)
+                        if(checkTimeSuffix(contentX.file.url)) {
+                            try {
+                                exoPlayer.release()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                            imageAd.visibility = View.INVISIBLE
+                            playerView.visibility = View.VISIBLE
+                            exoPlayer = ExoPlayer.Builder(this@TvActivity).build()
+                            playerView.player = exoPlayer
+                            playerView.player?.volume = 1f
+                            withContext(Dispatchers.Main) {
+                                exoPlayer.clearMediaItems()
+                                val mediaItem: MediaItem =
+                                    MediaItem.Builder().setDrmConfiguration(
+                                        MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+                                            .setForceSessionsForAudioAndVideoTracks(true)
+                                            .build()
+                                    )
+                                        .setUri(contentX.file.url)
                                         .build()
-                                )
-                                    .setUri(contentX.file.url)
-                                    .build()
 //                            MediaItem.fromUri(contentX.file.url)
 //                            val mediaSource = ProgressiveMediaSource.Factory(DefaultHttpDataSource.Factory()).createMediaSource(mediaItem)
-                            val mediaSource =
-                                ProgressiveMediaSource.Factory(buildCacheDataSourceFactory())
-                                    .createMediaSource(mediaItem)
+                                val mediaSource =
+                                    ProgressiveMediaSource.Factory(buildCacheDataSourceFactory())
+                                        .createMediaSource(mediaItem)
 
-                            exoPlayer.setMediaSource(mediaSource)
-                            exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-                            exoPlayer.playWhenReady = true
-                            exoPlayer.prepare()
+                                exoPlayer.setMediaSource(mediaSource)
+                                exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+                                exoPlayer.playWhenReady = true
+                                exoPlayer.prepare()
 //                            Log.d("VIDEO_DURATION", "video duration is ${exoPlayer.duration / 1000}")
-                            exoPlayer.addListener(object : Listener {
-                                override fun onPlayerStateChanged(
-                                    playWhenReady: Boolean,
-                                    playbackState: Int
-                                ) {
-                                    if (playbackState == ExoPlayer.STATE_READY) {
-                                        val realDurationMillis = exoPlayer.duration
-                                        duration = realDurationMillis
+                                exoPlayer.addListener(object : Listener {
+                                    override fun onPlayerStateChanged(
+                                        playWhenReady: Boolean,
+                                        playbackState: Int
+                                    ) {
+                                        if (playbackState == ExoPlayer.STATE_READY) {
+                                            val realDurationMillis = exoPlayer.duration
+                                            duration = realDurationMillis
+                                        }
+                                        if (playbackState == ExoPlayer.STATE_ENDED) {
+                                        }
                                     }
-                                    if (playbackState == ExoPlayer.STATE_ENDED) {
-                                    }
-                                }
-                            })
+                                })
+                            }
                         }
 //                        isCurrentAdVideo = true
                     }
@@ -236,7 +240,7 @@ class TvActivity : AppCompatActivity() {
                         "VIDEO_DURATION",
                         "contentX video duration is ${contentX.duration.toInt() * 1000L}"
                     )
-                    delay(duration)
+                    delay(contentX.duration.toInt() * 1000L)
 
 
 //                    exoPlayer.clearMediaItems()
@@ -659,7 +663,11 @@ class TvActivity : AppCompatActivity() {
 
     private fun bindViews() {
         btnSendLogs = findViewById(R.id.btn_send_logs)
-        btnSendLogs.setOnClickListener { sentEmail() }
+        btnSendLogs.setOnClickListener {
+            val intent = Intent(Settings.ACTION_HOME_SETTINGS)
+            startActivity(intent)
+//            sentEmail()
+        }
         btnSettings = findViewById(R.id.btn_settings)
         btnSettings.setOnClickListener {
             settingsDialog.open()
@@ -701,6 +709,21 @@ class TvActivity : AppCompatActivity() {
     private fun <T> Flow<T>.launchWhenResumed(lifecycleScope: LifecycleCoroutineScope) {
         lifecycleScope.launchWhenResumed {
             this@launchWhenResumed.collect()
+        }
+    }
+
+    fun checkTimeSuffix(inputString: String): Boolean {
+        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return when {
+            inputString.contains("__night") -> {
+                // Night time from 22:00 to 7:00
+                currentHour in 22..23 || currentHour in 0..7
+            }
+            inputString.contains("__day") -> {
+                // Day time from 7:00 to 22:00
+                currentHour in 7..21
+            }
+            else -> false
         }
     }
 }

@@ -203,6 +203,10 @@ class SettingsBottomSheetDialog(
             btn.setOnClickListener {
                 setWebViewUrl(UrlData(true, TvWebViewClient.BLR_LOGO_HTML))
                 getTimeFromAppSettings(true)
+                Settings.System.putInt(
+                    context.contentResolver,
+                    Settings.System.SCREEN_OFF_TIMEOUT, 5000
+                )
                 dismiss()
             }
         }

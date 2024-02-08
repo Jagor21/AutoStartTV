@@ -4,8 +4,7 @@
     android:id="@+id/parent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:keepScreenOn="true">
+    android:orientation="vertical">
 
     <WebView
         android:id="@+id/webView"
@@ -44,6 +43,7 @@
         android:id="@+id/btn_send_logs"
         android:layout_width="200dp"
         android:layout_height="100dp"
+        android:background="#FA0000"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
         android:textAllCaps="false"
